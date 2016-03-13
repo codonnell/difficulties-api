@@ -1,5 +1,6 @@
 (ns difficulty-api.db
   (:require [com.stuartsierra.component :as component]
+            [medley.core :refer [map-vals]]
             [datomic.api :as d]))
 
 (defrecord Database [uri]
@@ -26,58 +27,61 @@
    :attack.result/lose :lose})
 
 (defn attacks-on
-  "Returns a list of entries [{:stats stats :result :win/:lose}]"
-  [db torn-id]
-  (map (fn [[{:keys [player/battle-stats]} result]]
-         {:stats battle-stats :result (get result-map result)})
-       (d/q '[:find (pull ?attacker [:player/battle-stats]) ?result
-              :in $ ?defender-id
+  "Returns a list of entries [{:attacker-stats stats :result :win/:lose}]"
+  [db defender-ids]
+  (->> (d/q '[:find
+              (pull ?attack [{:attack/attacker [:player/battle-stats]}
+                             {:attack/defender [:player/torn-id]}])
+              ?result
+              :in $ [?defender-id ...]
               :where
               [?defender :player/torn-id ?defender-id]
               [?attack :attack/defender ?defender]
               [?attack :attack/attacker ?attacker]
               [?attack :attack/result ?result-entity]
               [?result-entity :db/ident ?result]]
-            db torn-id)))
+            db defender-ids)
+       (map (fn [[attack result]]
+              {:attacker-stats (get-in attack [:attack/attacker :player/battle-stats])
+               :defender-id (get-in attack [:attack/defender :player/torn-id])
+               :result (get result-map result)}))
+       (group-by :defender-id)))
 
 (defn attack-difficulty
-  "Returns :easy if attacker stats are higher than stats and result is :win.
-  Returns :impossible if attacker stats are lower than stats and result is :lose.
+  "Returns :easy if caller stats are higher than attacker stats and result is :win.
+  Returns :impossible if caller stats are lower than attacker stats and result is :lose.
   Otherwise returns nil."
-  [attacker-stats {:keys [stats result]}]
+  [caller-stats {:keys [attacker-stats result]}]
   (cond
-    (and (>= attacker-stats stats) (= :win result)) :easy
-    (and (<= attacker-stats stats) (= :lose result)) :impossible
+    (and (>= caller-stats attacker-stats) (= :win result)) :easy
+    (and (<= caller-stats attacker-stats) (= :lose result)) :impossible
     :default nil))
 
 (defn difficulty
   "Returns :unknown, :easy, :medium, or :hard"
-  [db attacker-id defender-id]
-  (let [attacker-stats (:player/battle-stats
-                        (d/q '[:find (pull ?attacker [:player/battle-stats]) .
-                                                    :in $ ?attacker-id
-                                                    :where [?attacker :player/torn-id ?attacker-id]]
-                                                  db attacker-id))]
-    (->> (attacks-on db defender-id)
-         (keep (partial attack-difficulty attacker-stats))
-         (reduce (fn [player-difficulty attack-difficulty]
-                   (condp = [player-difficulty attack-difficulty]
-                     [:unknown :easy] :easy
-                     [:unknown :impossible] :impossible
-                     [:easy :easy] :easy
-                     [:easy :impossible] (reduced :medium)
-                     [:impossible :easy] (reduced :medium)
-                     [:impossible :impossible] :impossible))
-                 :unknown))))
+  [db caller-stats attacks]
+  (->> attacks
+   (keep (partial attack-difficulty caller-stats))
+   (reduce (fn [player-difficulty attack-difficulty]
+             (condp = [player-difficulty attack-difficulty]
+               [:unknown :easy] :easy
+               [:unknown :impossible] :impossible
+               [:easy :easy] :easy
+               [:easy :impossible] (reduced :medium)
+               [:impossible :easy] (reduced :medium)
+               [:impossible :impossible] :impossible))
+           :unknown)))
 
 (defn difficulties
   [db attacker-id defender-ids]
-  (if-not (d/q '[:find ?stats .
-                 :in $ ?torn-id
-                 :where [?p :player/torn-id ?torn-id] [?p :player/battle-stats ?stats]]
-               db attacker-id)
-    {:error :nonexistent-attacker}
-    (into {} (map
-              (fn [defender-id] [defender-id (difficulty db attacker-id defender-id)])
-              defender-ids))))
+  (if-let [caller-stats
+           (d/q '[:find ?stats .
+                  :in $ ?torn-id
+                  :where [?p :player/torn-id ?torn-id] [?p :player/battle-stats ?stats]]
+                db attacker-id)]
+    (map-vals
+     (fn [attacks] (difficulty db caller-stats attacks))
+     (merge (zipmap defender-ids (repeat [])) (attacks-on db defender-ids)))
+    {:error :nonexistent-attacker}))
+
 
