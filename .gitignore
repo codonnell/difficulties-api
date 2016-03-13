@@ -1,0 +1,4 @@
+/*.log
+/target
+.lein-repl-history
+.nrepl-port

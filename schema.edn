@@ -1,0 +1,73 @@
+[
+ ;; player
+
+ {:db/id #db/id[:db.part/db]
+  :db/ident :player/torn-id
+  :db/valueType :db.type/long
+  :db/cardinality :db.cardinality/one
+  :db/unique :db.unique/identity
+  :db/doc "A player's torn id"
+  :db.install/_attribute :db.part/db}
+ {:db/id #db/id[:db.part/db]
+  :db/ident :player/api-key
+  :db/valueType :db.type/string
+  :db/cardinality :db.cardinality/one
+  :db/index true
+  :db/doc "A player's api key"
+  :db.install/_attribute :db.part/db}
+ {:db/id #db/id[:db.part/db]
+  :db/ident :player/battle-stats
+  :db/valueType :db.type/double
+  :db/cardinality :db.cardinality/one
+  :db/doc "The sum of a player's battle stats"
+  :db.install/_attribute :db.part/db}
+
+ ;; attack
+
+ {:db/id #db/id[:db.part/db]
+  :db/ident :attack/torn-id
+  :db/valueType :db.type/long
+  :db/cardinality :db.cardinality/one
+  :db/unique :db.unique/value
+  :db/doc "The torn id for an attack"
+  :db.install/_attribute :db.part/db}
+ {:db/id #db/id[:db.part/db]
+  :db/ident :attack/attacker
+  :db/valueType :db.type/ref
+  :db/cardinality :db.cardinality/one
+  :db/index true
+  :db/doc "The attacking player for an attack"
+  :db.install/_attribute :db.part/db}
+ {:db/id #db/id[:db.part/db]
+  :db/ident :attack/defender
+  :db/valueType :db.type/ref
+  :db/cardinality :db.cardinality/one
+  :db/index true
+  :db/doc "The defending player for an attack"
+  :db.install/_attribute :db.part/db}
+ {:db/id #db/id[:db.part/db]
+  :db/ident :attack/result
+  :db/valueType :db.type/ref
+  :db/cardinality :db.cardinality/one
+  :db/doc "The result of an attack"
+  :db.install/_attribute :db.part/db}
+ {:db/id #db/id[:db.part/db]
+  :db/ident :attack/start-time
+  :db/valueType :db.type/instant
+  :db/cardinality :db.cardinality/one
+  :db/doc "The start time of an attack"
+  :db.install/_attribute :db.part/db}
+ {:db/id #db/id[:db.part/db]
+  :db/ident :attack/end-time
+  :db/valueType :db.type/instant
+  :db/cardinality :db.cardinality/one
+  :db/doc "The end time of an attack"
+  :db.install/_attribute :db.part/db}
+
+ ;; attack/result enum values
+ [:db/add #db/id[:db.part/user] :db/ident :attack.result/hospitalize]
+ [:db/add #db/id[:db.part/user] :db/ident :attack.result/mug]
+ [:db/add #db/id[:db.part/user] :db/ident :attack.result/leave]
+ [:db/add #db/id[:db.part/user] :db/ident :attack.result/lose]
+ [:db/add #db/id[:db.part/user] :db/ident :attack.result/stalemate]
+ ]
