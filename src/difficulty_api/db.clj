@@ -24,7 +24,8 @@
    :attack.result/hospitalize :win
    :attack.result/leave :win
    :attack.result/mug :win
-   :attack.result/lose :lose})
+   :attack.result/lose :lose
+   :attack.result/run-away :lose})
 
 (defn attacks-on
   "Returns a list of entries [{:attacker-stats stats :result :win/:lose}]"

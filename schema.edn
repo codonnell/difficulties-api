@@ -70,4 +70,5 @@
  [:db/add #db/id[:db.part/user] :db/ident :attack.result/leave]
  [:db/add #db/id[:db.part/user] :db/ident :attack.result/lose]
  [:db/add #db/id[:db.part/user] :db/ident :attack.result/stalemate]
+ [:db/add #db/id[:db.part/user] :db/ident :attack.result/run-away]
  ]
