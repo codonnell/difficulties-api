@@ -66,15 +66,42 @@
              :speed_info [s/Str]
              :dexterity_info [s/Str]
              :defense_info [s/Str]}
-    :selections ["battlestats"]}})
+    :selections ["battlestats"]}
+   :attacks
+   {:schema {:attacks {s/Int {:defender_faction s/Int
+                              :attacker_faction s/Int
+                              :defender_name s/Str
+                              :attacker_name (s/maybe s/Str)
+                              :defender_id s/Int
+                              :attacker_id (s/maybe s/Int)
+                              :result s/Str
+                              :respect_gain s/Num
+                              :timestamp_started s/Inst
+                              :timestamp_ended s/Inst}}}
+    :selections ["attacks"]}})
+
+(defn long->Date [timestamp]
+  (java.util.Date. (long timestamp)))
+
+(defn maybe-string->id [id]
+  (if (string? id)
+    (if (empty? id) nil (Integer/parseInt id))
+    id))
+
+(defn ->int [x]
+  (if (integer? x) x
+      (Integer/parseInt (name x))))
+
+(defn torn-api-matcher [schema]
+  (or ({s/Inst long->Date
+        (s/maybe s/Int) maybe-string->id
+        s/Int ->int} schema)
+      (coerce/json-coercion-matcher schema)))
 
 (def resp-parser
   (memoize
    (fn [req-name]
-     (coerce/coercer (get-in queries [req-name :schema]) coerce/json-coercion-matcher))))
-
-(def parse-basic-info
-  (coerce/coercer BasicInfo coerce/json-coercion-matcher))
+     (coerce/coercer (get-in queries [req-name :schema]) torn-api-matcher))))
 
 (defn user-api-call
   ([req-name http-client api-key]
@@ -95,8 +122,6 @@
                  false
                  (throw e)))))))
 
-(defn battle-stats
-  ([http-client api-key]
-   (battle-stats http-client api-key nil))
-  ([http-client api-key id]
-   (http-get http-client (user-query-url api-key ["battlestats"]))))
+(def battle-stats (partial user-api-call :battle-stats))
+
+(def attacks (partial user-api-call :attacks))
