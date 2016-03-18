@@ -61,6 +61,20 @@
     :attack/result :attack.result/lose}
    ])
 
+(def test-player {:player/torn-id 8
+                  :player/api-key "foo"
+                  :player/battle-stats 100.0})
+
+(def test-attack {:attack/torn-id 15
+                  :attack/attacker [:player/torn-id 1]
+                  :attack/defender [:player/torn-id 2]
+                  :attack/result :attack.result/hospitalize})
+
+(def duplicate-test-attack {:attack/torn-id 1
+                            :attack/attacker [:player/torn-id 2]
+                            :attack/defender [:player/torn-id 4]
+                            :attack/result :attack.result/hospitalize})
+
 (defn speculate [db t]
   (:db-after
    (d/with db t)))
@@ -101,3 +115,42 @@
   (is (= {} (db/difficulties test-db 1 [])))
   (is (= {:error :nonexistent-attacker}
          (db/difficulties test-db 0 []))))
+
+(deftest player-by-torn-id-test
+  (is (= {:player/torn-id 1 :player/battle-stats 5.0}
+         (db/player-by-torn-id test-db 1)))
+  (is (= {:player/torn-id 4} (db/player-by-torn-id test-db 4)))
+  (is (nil? (db/player-by-torn-id test-db 0))))
+
+;; There should be two main ways to insert data into the database.
+;; First, if we're adding a new player, we'll need to insert them into the database and spawn a call to download their attack log.
+;; Second, we'll need to be able to add a list of attacks to the database.
+
+(deftest add-player-test
+  (is (= test-player
+         (db/player-by-torn-id (speculate test-db (db/add-player-tx test-player)) (:player/torn-id test-player))))
+  (let [existing-player (assoc test-player :player/torn-id 1)]
+    (is (= existing-player
+           (db/player-by-torn-id (speculate test-db (db/add-player-tx existing-player)) 1))))
+  (let [new-api-player (assoc test-player :player/api-key "foo")]
+    (is (= new-api-player
+           (db/player-by-torn-id (speculate test-db (db/add-player-tx new-api-player)) (:player/torn-id new-api-player))))))
+
+(deftest attack-by-torn-id-test
+  (is (= {:attack/torn-id 1
+          :attack/attacker [:player/torn-id 2]
+          :attack/defender [:player/torn-id 4]
+          :attack/result :attack.result/hospitalize}
+         (db/attack-by-torn-id test-db 1)))
+  (is (= nil (db/attack-by-torn-id test-db 0))))
+
+(deftest add-attack-test
+  (is (= test-attack
+         (db/attack-by-torn-id (speculate test-db (db/add-attacks-tx test-db [test-attack]))
+                               (:attack/torn-id test-attack))))
+  (let [get-attacks '[:find ?attack :where [?attack :attack/torn-id]]]
+    (is (= (count (d/q get-attacks test-db))
+           (count (d/q get-attacks (speculate test-db (db/add-attacks-tx test-db [duplicate-test-attack])))))))
+  (is (= duplicate-test-attack
+         (db/attack-by-torn-id (speculate test-db (db/add-attacks-tx test-db [duplicate-test-attack]))
+                               (:attack/torn-id duplicate-test-attack)))))
