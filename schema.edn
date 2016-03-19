@@ -28,7 +28,7 @@
   :db/ident :attack/torn-id
   :db/valueType :db.type/long
   :db/cardinality :db.cardinality/one
-  :db/unique :db.unique/value
+  :db/unique :db.unique/identity
   :db/doc "The torn id for an attack"
   :db.install/_attribute :db.part/db}
  {:db/id #db/id[:db.part/db]
