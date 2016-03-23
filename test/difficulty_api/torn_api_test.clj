@@ -22,33 +22,34 @@
   (is (thrown? RuntimeException
                (api/user-query-url "foo" []))))
 
+(def basic-info-test-data {"level" 1 "gender" "Male" "status" "Civilian" "player_id" 1234 "name" "foo"})
+
 (deftest basic-info-test
-  (let [info {"level" 1 "gender" "Male" "status" "Civilian" "player_id" 1234 "name" "foo"}]
-    (is (= (keywordize-keys info)
-           (api/basic-info (test-client info) "foo")))
-    (is (thrown? RuntimeException
-                 (api/basic-info (test-client info "")))))
+  (is (= (keywordize-keys basic-info-test-data)
+         (api/basic-info (test-client basic-info-test-data) "foo")))
+  (is (thrown? RuntimeException
+               (api/basic-info (test-client basic-info-test-data ""))))
   (is (thrown? RuntimeException
                (api/basic-info (test-client {:error {:code 2}})))))
 
 (deftest valid-api-key-test
-  (let [info {"level" 1 "gender" "Male" "status" "Civilian" "player_id" 1234 "name" "foo"}]
-    (is (api/valid-api-key? (test-client info) "foo")))
+  (is (api/valid-api-key? (test-client basic-info-test-data) "foo"))
   (is (not (api/valid-api-key? (test-client {:error {:code 2}}) "bar")))
   (is (not (api/valid-api-key? (test-client {:error {:code 1}}) ""))))
 
+(def battle-stats-test-data {:strength 1.0 :speed 2.0 :dexterity 3.0 :defense 4.0
+                             :strength_modifier -2 :speed_modifier 0
+                             :dexterity_modifier -4 :defense_modifier -5
+                             :strength_info ["foo" "bar"]
+                             :speed_info []
+                             :dexterity_info ["test"]
+                             :defense_info ["baz"]})
+
 (deftest battle-stats-test
-  (let [info {:strength 1.0 :speed 2.0 :dexterity 3.0 :defense 4.0
-              :strength_modifier -2 :speed_modifier 0
-              :dexterity_modifier -4 :defense_modifier -5
-              :strength_info ["foo" "bar"]
-              :speed_info []
-              :dexterity_info ["test"]
-              :defense_info ["baz"]}]
-    (is (= (keywordize-keys info)
-           (api/battle-stats (test-client info) "foo")))
-    (is (thrown? RuntimeException
-                 (api/battle-stats (test-client info) ""))))
+  (is (= (keywordize-keys battle-stats-test-data)
+         (api/battle-stats (test-client battle-stats-test-data) "foo")))
+  (is (thrown? RuntimeException
+               (api/battle-stats (test-client battle-stats-test-data) "")))
   (is (thrown? RuntimeException
                (api/battle-stats (test-client {:error {:code 2}}) ""))))
 

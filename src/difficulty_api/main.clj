@@ -3,4 +3,7 @@
             [com.stuartsierra.component :as component]))
 
 (defn -main [& args]
-  (component/start (system/dev-system {:db-uri "datomic:mem://difficulty-api"})))
+  (let [sys (system/dev-system {:db-uri "datomic:mem://difficulty-api"})]
+    (try
+      (component/start sys)
+      (finally (component/stop sys)))))

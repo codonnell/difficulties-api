@@ -17,7 +17,9 @@
               [:app]))))
 
 (defn test-system [config-options]
-  (let [{:keys [db-uri http-client] :or ["datomic:mem://difficulty-api-test" clj-http-client] config-options}]
+  (let [{:keys [db-uri http-client]
+         :or {db-uri "datomic:mem://difficulty-api-test" http-client clj-http-client}}
+        config-options]
     (component/system-map
      :db (new-database db-uri)
      :app (component/using

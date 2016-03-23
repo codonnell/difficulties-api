@@ -13,7 +13,8 @@
       (assoc component :conn conn)))
 
   (stop [component]
-    (d/release (:conn component))
+    (if-let [conn (:conn component)]
+      (d/release conn))
     (assoc component :conn nil)))
 
 (defn new-database [uri]
