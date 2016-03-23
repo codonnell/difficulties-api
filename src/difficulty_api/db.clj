@@ -73,7 +73,7 @@
                [:impossible :impossible] :impossible))
            :unknown)))
 
-(defn difficulties
+(defn difficulties*
   [db attacker-id defender-ids]
   (if-let [caller-stats
            (d/q '[:find ?stats .
@@ -83,27 +83,42 @@
     (map-vals
      (fn [attacks] (difficulty db caller-stats attacks))
      (merge (zipmap defender-ids (repeat [])) (attacks-on db defender-ids)))
-    {:error :nonexistent-attacker}))
+    (throw (ex-info "Attacker not in database" {:player/torn-id attacker-id}))))
+
+(defn difficulties [db attacker-id defender-ids]
+  (difficulties* (d/db (:conn db)) attacker-id defender-ids))
 
 (def player-pull [:player/torn-id :player/api-key :player/battle-stats])
 
-(defn player-by-torn-id [db torn-id]
+(defn player-by-torn-id* [db torn-id]
   (d/q '[:find (pull ?player player-pull) .
          :in $ ?torn-id player-pull
          :where [?player :player/torn-id ?torn-id]]
        db torn-id player-pull))
 
+(defn player-by-torn-id [db torn-id]
+  (player-by-torn-id* (d/db (:conn db)) torn-id))
+
+(defn player-by-api-key* [db api-key]
+  (d/q '[:find (pull ?player player-pull) .
+         :in $ ?api-key player-pull
+         :where [?player :player/api-key ?api-key]]
+       db api-key player-pull))
+
+(defn player-by-api-key [db api-key]
+  (player-by-api-key* (d/db (:conn db)) api-key))
+
 (defn add-player-tx [player]
   [(merge {:db/id #db/id[:db.part/user -1]} player)])
 
-(defn add-player [conn player]
-  (d/transact conn (add-player-tx player)))
+(defn add-player [db player]
+  (d/transact (:conn db) (add-player-tx player)))
 
 (def attack-pull
   [:attack/torn-id :attack/start-time :attack/end-time {:attack/attacker [:player/torn-id]}
    {:attack/defender [:player/torn-id]}])
 
-(defn attack-by-torn-id [db torn-id]
+(defn attack-by-torn-id* [db torn-id]
   (let [[[attack result]] (d/q '[:find (pull ?attack attack-pull) ?result
                                :in $ ?attack-id attack-pull
                                :where
@@ -116,14 +131,22 @@
                         :attack/defender (first (vec (get attack :attack/defender)))
                         :attack/result result))))
 
-(defn add-attacks-tx [db attacks]
-  (let [new-attacks (take-while (fn [attack] (not (attack-by-torn-id db (:attack/torn-id attack)))) attacks)]
-    (mapv (fn [attack] (assoc attack
-                              :db/id (d/tempid :db.part/user)
-                              :attack/attacker (:attack/attacker attack)
-                              :attack/defender (:attack/defender attack)
-                              :attack/result [:db/ident (:attack/result attack)]))
-          new-attacks)))
+(defn attack-by-torn-id [db torn-id]
+  (attack-by-torn-id* (d/db (:conn db))))
 
-(defn add-attack-tx [db attack]
-  (add-attacks-tx db [attack]))
+(defn add-attacks-tx [attacks]
+  (mapv (fn [attack] (assoc attack
+                            :db/id (d/tempid :db.part/user)
+                            :attack/attacker (:attack/attacker attack)
+                            :attack/defender (:attack/defender attack)
+                            :attack/result [:db/ident (:attack/result attack)]))
+        attacks))
+
+(defn add-attack-tx [attack]
+  (add-attacks-tx [attack]))
+
+(defn add-attacks [db attacks]
+  (d/transact (:conn db) (add-attacks-tx attacks)))
+
+(defn add-attack [db attack]
+  (d/transact (:conn db) (add-attack-tx attack)))

@@ -124,4 +124,10 @@
 
 (def battle-stats (partial user-api-call :battle-stats))
 
+(defn total-battle-stats [stats]
+  (as-> stats x
+    (select-keys x [:strength :speed :dexterity :defense])
+    (vals x)
+    (reduce + 0 x)))
+
 (def attacks (partial user-api-call :attacks))
