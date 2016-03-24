@@ -78,12 +78,28 @@
                   :player/api-key "foo"
                   :player/battle-stats 100.0})
 
-(def test-attack {:attack/torn-id 15
-                  :attack/attacker 1
-                  :attack/defender 2
-                  :attack/timestamp-started (java.util.Date. (long 1))
-                  :attack/timestamp-ended (java.util.Date. (long 100))
-                  :attack/result :attack.result/hospitalize})
+(def schema-test-attack {:attack/torn-id 15
+                         :attack/attacker 1
+                         :attack/defender 2
+                         :attack/timestamp-started (java.util.Date. (long 1))
+                         :attack/timestamp-ended (java.util.Date. (long 100))
+                         :attack/result :attack.result/hospitalize})
+
+;; ready for entry to datomic
+(def db-test-attack {:attack/torn-id 15
+                     :attack/attacker [:player/torn-id 1]
+                     :attack/defender [:player/torn-id 2]
+                     :attack/timestamp-started (java.util.Date. (long 1))
+                     :attack/timestamp-ended (java.util.Date. (long 100))
+                     :attack/result [:db/ident :attack.result/hospitalize]})
+
+;; tuple return from datomic
+(def return-test-attack [{:attack/torn-id 15
+                          :attack/attacker {:player/torn-id 1}
+                          :attack/defender {:player/torn-id 2}
+                          :attack/timestamp-started (java.util.Date. (long 1))
+                          :attack/timestamp-ended (java.util.Date. (long 100))}
+                         :attack.result/hospitalize])
 
 (def duplicate-test-attack {:attack/torn-id 1
                             :attack/attacker 2
@@ -98,6 +114,27 @@
                             :attack/timestamp-started (java.util.Date. (long 1))
                             :attack/timestamp-ended (java.util.Date. (long 100))
                             :attack/result :attack.result/stalemate})
+
+(def schema-anon-attack {:attack/torn-id 17
+                         :attack/attacker nil
+                         :attack/defender 9
+                         :attack/timestamp-started (java.util.Date. (long 1))
+                         :attack/timestamp-ended (java.util.Date. (long 100))
+                         :attack/result :attack.result/stalemate})
+
+;; ready for entry to datomic
+(def db-anon-attack {:attack/torn-id 17
+                     :attack/defender [:player/torn-id 9]
+                     :attack/timestamp-started (java.util.Date. (long 1))
+                     :attack/timestamp-ended (java.util.Date. (long 100))
+                     :attack/result [:db/ident :attack.result/stalemate]})
+
+;; tuple return from datomic
+(def return-anon-attack [{:attack/torn-id 17
+                          :attack/defender {:player/torn-id 9}
+                          :attack/timestamp-started (java.util.Date. (long 1))
+                          :attack/timestamp-ended (java.util.Date. (long 100))}
+                         :attack.result/stalemate])
 
 (defn speculate [db t]
   (:db-after
@@ -175,9 +212,9 @@
   (is (= nil (db/attack-by-torn-id* test-db 0))))
 
 (deftest add-attack-test
-  (is (= test-attack
-         (db/attack-by-torn-id* (speculate test-db (db/add-attack-tx test-attack))
-                                (:attack/torn-id test-attack))))
+  (is (= schema-test-attack
+         (db/attack-by-torn-id* (speculate test-db (db/add-attack-tx schema-test-attack))
+                                (:attack/torn-id schema-test-attack))))
   (is (= unknown-player-attack
          (db/attack-by-torn-id* (speculate test-db (db/add-attack-tx unknown-player-attack))
                                 (:attack/torn-id unknown-player-attack))))
@@ -187,3 +224,15 @@
   (is (= duplicate-test-attack
          (db/attack-by-torn-id* (speculate test-db (db/add-attack-tx duplicate-test-attack))
                                 (:attack/torn-id duplicate-test-attack)))))
+
+(deftest db-attack->schema-attack-test
+  (is (= schema-test-attack
+         (db/db-attack->schema-attack return-test-attack)))
+  (is (= schema-anon-attack
+         (db/db-attack->schema-attack return-anon-attack))))
+
+(deftest schema-attack->db-attack-test
+  (is (= db-test-attack
+         (db/schema-attack->db-attack schema-test-attack)))
+  (is (= db-anon-attack
+         (db/schema-attack->db-attack schema-anon-attack))))

@@ -31,6 +31,24 @@
    :attack.result/run-away :lose
    :attack.result/timeout :lose})
 
+(def PlayerEntity
+  (s/conditional (fn [[k v]] (and (= :player/torn-id k)
+                                  (integer? v)))
+                 [s/Any]))
+
+(def ResultEntity
+  (s/conditional (fn [[k v]] (and (= :db/ident k)
+                                  (set (keys result-map)) v))
+                 [s/Any]))
+
+(def DbAttack
+  {:attack/torn-id s/Int
+   (s/optional-key :attack/attacker) PlayerEntity
+   :attack/defender PlayerEntity
+   :attack/result ResultEntity
+   :attack/timestamp-started s/Inst
+   :attack/timestamp-ended s/Inst})
+
 (defn db-attack->schema-attack
   "Converts a pair [attack result] to a map matching schema/Attack."
   [[attack result]]
@@ -42,12 +60,19 @@
           :attack/result result)))
 
 (defn schema-attack->db-attack
-  "Converts a map matching schema/Attack to have ident pairs for datomic."
+  "Converts a map matching schema/Attack to have ident pairs for datomic. If the
+  attack is anonymous (and so :attack/attacker is nil), removes that key."
   [attack]
-  (assoc attack
-         :attack/attacker [:player/torn-id (:attack/attacker attack)]
-         :attack/defender [:player/torn-id (:attack/defender attack)]
-         :attack/result [:db/ident (:attack/result attack)]))
+  (s/validate
+   DbAttack
+   (as-> attack a
+       (assoc a
+        :attack/attacker [:player/torn-id (:attack/attacker attack)]
+        :attack/defender [:player/torn-id (:attack/defender attack)]
+        :attack/result [:db/ident (:attack/result attack)])
+       (if (nil? (:attack/attacker attack))
+         (dissoc a :attack/attacker)
+         a))))
 
 (defn attacks-on
   "Returns a list of entries [{:attacker-stats stats :result :win/:lose}]"
