@@ -3,14 +3,21 @@
             [ring.util.http-response :refer :all]
             [schema.core :as s]
             [com.stuartsierra.component :as component]
+            [clojure.pprint :refer [pprint]]
+            [cheshire.core :as json]
             [difficulty-api.dispatch :as dispatch]
             [difficulty-api.torn-api :as api]))
 
 (defn invalid-api-key-handler [^Exception e data request]
-  (bad-request (format "Invalid API key: %s" (:api-key data))))
+  (bad-request (json/encode {:error {:msg "Invalid API key" :api-key (:api-key data)}})))
 
 (defn unknown-api-key-handler [^Exception e data request]
-  (bad-request (format "Unknown API key: %s" (:api-key data))))
+  (not-found (json/encode {:error {:msg "Unknown API key" :api-key (:api-key data)}})))
+
+(defn wrap-logging [handler]
+  (fn [req]
+    (pprint req)
+    (handler req)))
 
 (defn app [http-client db]
   (api
@@ -25,6 +32,7 @@
 
     (context "/api" []
       :tags ["api"]
+      ;; :middleware [wrap-logging]
 
       (POST "/apikey" []
           :return {:result s/Bool}
