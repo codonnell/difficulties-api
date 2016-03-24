@@ -65,7 +65,7 @@
                               "timestamp_started" 10
                               "timestamp_ended" 500}
                          "2" {"defender_faction" 2
-                              "attacker_faction" 1
+                              "attacker_faction" ""
                               "defender_name" "bar"
                               "attacker_name" nil
                               "defender_id" 4
@@ -78,6 +78,7 @@
                (keywordize-keys)
                (update :attacks (fn [m] (map-keys (comp #(Integer/parseInt %) name) m)))
                (assoc-in [:attacks 2 :attacker_id] nil)
+               (assoc-in [:attacks 2 :attacker_faction] nil)
                (update-in [:attacks 1 :timestamp_started] api/long->Date)
                (update-in [:attacks 1 :timestamp_ended] api/long->Date)
                (update-in [:attacks 2 :timestamp_started] api/long->Date)
@@ -87,3 +88,51 @@
                  (api/attacks (test-client info) ""))))
   (is (thrown? RuntimeException
                (api/attacks (test-client {:error {:code 2}}) ""))))
+
+(def api-attack
+  {:defender_id 1
+   :defender_faction 2
+   :defender_name "foo"
+   :attacker_id 3
+   :attacker_faction 4
+   :attacker_name "bar"
+   :result "Hospitalize"
+   :timestamp_started (java.util.Date. 3)
+   :timestamp_ended (java.util.Date. 4)
+   :respect_gain 1.2})
+
+(def anon-api-attack
+  (assoc api-attack
+         :attacker_id nil
+         :attacker_faction nil
+         :attacker_name nil))
+
+(def schema-attack
+  {:attack/defender 1
+   :attack/attacker 3
+   :attack/result :attack.result/hospitalize
+   :attack/timestamp-started (java.util.Date. 3)
+   :attack/timestamp-ended (java.util.Date. 4)})
+
+(def anon-schema-attack
+  (assoc schema-attack :attack/attacker nil))
+
+(deftest api-attacks->schema-attacks-test
+  (is (= [(assoc schema-attack :attack/torn-id 1)
+          (assoc schema-attack :attack/torn-id 2 :attack/result :attack.result/mug)
+          (assoc schema-attack :attack/torn-id 3 :attack/result :attack.result/leave)
+          (assoc schema-attack :attack/torn-id 4 :attack/result :attack.result/lose)
+          (assoc schema-attack :attack/torn-id 5 :attack/result :attack.result/stalemate)
+          (assoc schema-attack :attack/torn-id 6 :attack/result :attack.result/run-away)
+          (assoc schema-attack :attack/torn-id 7 :attack/result :attack.result/timeout)
+          (assoc anon-schema-attack :attack/torn-id 8)]
+         (api/api-attacks->schema-attacks
+          {:attacks
+           {1 api-attack
+            2 (assoc api-attack :result "Mug")
+            3 (assoc api-attack :result "Leave")
+            4 (assoc api-attack :result "Lose")
+            5 (assoc api-attack :result "Stalemate")
+            6 (assoc api-attack :result "Run away")
+            7 (assoc api-attack :result "Timeout")
+            8 anon-api-attack}}))))

@@ -52,13 +52,13 @@
   :db/doc "The result of an attack"
   :db.install/_attribute :db.part/db}
  {:db/id #db/id[:db.part/db]
-  :db/ident :attack/start-time
+  :db/ident :attack/timestamp-started
   :db/valueType :db.type/instant
   :db/cardinality :db.cardinality/one
   :db/doc "The start time of an attack"
   :db.install/_attribute :db.part/db}
  {:db/id #db/id[:db.part/db]
-  :db/ident :attack/end-time
+  :db/ident :attack/timestamp-ended
   :db/valueType :db.type/instant
   :db/cardinality :db.cardinality/one
   :db/doc "The end time of an attack"
@@ -71,4 +71,5 @@
  [:db/add #db/id[:db.part/user] :db/ident :attack.result/lose]
  [:db/add #db/id[:db.part/user] :db/ident :attack.result/stalemate]
  [:db/add #db/id[:db.part/user] :db/ident :attack.result/run-away]
+ [:db/add #db/id[:db.part/user] :db/ident :attack.result/timeout]
  ]

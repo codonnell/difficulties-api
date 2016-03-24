@@ -34,32 +34,44 @@
     :attack/torn-id 1
     :attack/attacker #db/id[:db.part/user -2]
     :attack/defender #db/id[:db.part/user -4]
+    :attack/timestamp-started (java.util.Date. (long 1))
+    :attack/timestamp-ended (java.util.Date. (long 100))
     :attack/result :attack.result/hospitalize}
    {:db/id #db/id[:db.part/user -9]
     :attack/torn-id 2
     :attack/attacker #db/id[:db.part/user -2]
     :attack/defender #db/id[:db.part/user -5]
+    :attack/timestamp-started (java.util.Date. (long 1))
+    :attack/timestamp-ended (java.util.Date. (long 100))
     :attack/result :attack.result/lose}
    {:db/id #db/id[:db.part/user -11]
     :attack/torn-id 4
     :attack/attacker #db/id[:db.part/user -1]
     :attack/defender #db/id[:db.part/user -6]
+    :attack/timestamp-started (java.util.Date. (long 1))
+    :attack/timestamp-ended (java.util.Date. (long 100))
     :attack/result :attack.result/mug}
    {:db/id #db/id[:db.part/user -12]
     :attack/torn-id 5
     :attack/attacker #db/id[:db.part/user -3]
     :attack/defender #db/id[:db.part/user -6]
+    :attack/timestamp-started (java.util.Date. (long 1))
+    :attack/timestamp-ended (java.util.Date. (long 100))
     :attack/result :attack.result/stalemate}
    {:db/id #db/id[:db.part/user -13]
     :attack/torn-id 6
     :attack/attacker #db/id[:db.part/user -2]
     :attack/defender #db/id[:db.part/user -7]
+    :attack/timestamp-started (java.util.Date. (long 1))
+    :attack/timestamp-ended (java.util.Date. (long 100))
     :attack/result :attack.result/hospitalize}
    {:db/id #db/id[:db.part/user -14]
     :attack/torn-id 7
     :attack/attacker #db/id[:db.part/user -2]
     :attack/defender #db/id[:db.part/user -7]
-    :attack/result :attack.result/lose}
+    :attack/timestamp-started (java.util.Date. (long 1))
+    :attack/timestamp-ended (java.util.Date. (long 100))
+    :attack/result :attack.result/timeout}
    ])
 
 (def test-player {:player/torn-id 8
@@ -67,14 +79,25 @@
                   :player/battle-stats 100.0})
 
 (def test-attack {:attack/torn-id 15
-                  :attack/attacker [:player/torn-id 1]
-                  :attack/defender [:player/torn-id 2]
+                  :attack/attacker 1
+                  :attack/defender 2
+                  :attack/timestamp-started (java.util.Date. (long 1))
+                  :attack/timestamp-ended (java.util.Date. (long 100))
                   :attack/result :attack.result/hospitalize})
 
 (def duplicate-test-attack {:attack/torn-id 1
-                            :attack/attacker [:player/torn-id 2]
-                            :attack/defender [:player/torn-id 4]
+                            :attack/attacker 2
+                            :attack/defender 4
+                            :attack/timestamp-started (java.util.Date. (long 1))
+                            :attack/timestamp-ended (java.util.Date. (long 100))
                             :attack/result :attack.result/hospitalize})
+
+(def unknown-player-attack {:attack/torn-id 16
+                            :attack/attacker 1
+                            :attack/defender 9
+                            :attack/timestamp-started (java.util.Date. (long 1))
+                            :attack/timestamp-ended (java.util.Date. (long 100))
+                            :attack/result :attack.result/stalemate})
 
 (defn speculate [db t]
   (:db-after
@@ -143,19 +166,24 @@
 
 (deftest attack-by-torn-id-test
   (is (= {:attack/torn-id 1
-          :attack/attacker [:player/torn-id 2]
-          :attack/defender [:player/torn-id 4]
+          :attack/attacker 2
+          :attack/defender 4
+          :attack/timestamp-started (java.util.Date. (long 1))
+          :attack/timestamp-ended (java.util.Date. (long 100))
           :attack/result :attack.result/hospitalize}
          (db/attack-by-torn-id* test-db 1)))
   (is (= nil (db/attack-by-torn-id* test-db 0))))
 
 (deftest add-attack-test
   (is (= test-attack
-         (db/attack-by-torn-id* (speculate test-db (db/add-attacks-tx [test-attack]))
-                               (:attack/torn-id test-attack))))
+         (db/attack-by-torn-id* (speculate test-db (db/add-attack-tx test-attack))
+                                (:attack/torn-id test-attack))))
+  (is (= unknown-player-attack
+         (db/attack-by-torn-id* (speculate test-db (db/add-attack-tx unknown-player-attack))
+                                (:attack/torn-id unknown-player-attack))))
   (let [get-attacks '[:find ?attack :where [?attack :attack/torn-id]]]
     (is (= (count (d/q get-attacks test-db))
-           (count (d/q get-attacks (speculate test-db (db/add-attacks-tx [duplicate-test-attack])))))))
+           (count (d/q get-attacks (speculate test-db (db/add-attack-tx duplicate-test-attack)))))))
   (is (= duplicate-test-attack
-         (db/attack-by-torn-id* (speculate test-db (db/add-attacks-tx [duplicate-test-attack]))
-                               (:attack/torn-id duplicate-test-attack)))))
+         (db/attack-by-torn-id* (speculate test-db (db/add-attack-tx duplicate-test-attack))
+                                (:attack/torn-id duplicate-test-attack)))))

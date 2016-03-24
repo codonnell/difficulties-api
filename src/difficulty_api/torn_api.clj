@@ -4,7 +4,8 @@
             [schema.coerce :as coerce]
             [clojure.string :refer [join]]
             [cheshire.core :as json]
-            [schema.core :as s]))
+            [medley.core :refer [map-keys]]
+            [difficulty-api.schema :as schema]))
 
 (defprotocol HttpClient
   "An extremely naive http client which can send GET requests to urls."
@@ -30,8 +31,8 @@
   ([api-key selections]
    (user-query-url api-key selections nil))
   ([api-key selections id]
-   (cond (empty? api-key) (throw (ex-info "api-key cannot be empty." {}))
-         (empty? selections) (throw (ex-info "selections cannot be empty." {}))
+   (cond (empty? api-key) (throw (ex-info "api-key cannot be empty" {}))
+         (empty? selections) (throw (ex-info "selections cannot be empty" {}))
          :default (format "http://api.torn.com/user/%s?selections=%s&key=%s"
                           (if id (str id) "")
                           (join "," selections)
@@ -69,7 +70,7 @@
     :selections ["battlestats"]}
    :attacks
    {:schema {:attacks {s/Int {:defender_faction s/Int
-                              :attacker_faction s/Int
+                              :attacker_faction (s/maybe s/Int)
                               :defender_name s/Str
                               :attacker_name (s/maybe s/Str)
                               :defender_id s/Int
@@ -131,3 +132,32 @@
     (reduce + 0 x)))
 
 (def attacks (partial user-api-call :attacks))
+
+(def attack-key-conversions
+  {:defender_id :attack/defender
+   :attacker_id :attack/attacker
+   :result :attack/result
+   :timestamp_started :attack/timestamp-started
+   :timestamp_ended :attack/timestamp-ended})
+
+(def result-conversions
+  {"Hospitalize" :attack.result/hospitalize
+   "Stalemate" :attack.result/stalemate
+   "Leave" :attack.result/leave
+   "Mug" :attack.result/mug
+   "Lose" :attack.result/lose
+   "Run away" :attack.result/run-away
+   "Timeout" :attack.result/timeout})
+
+(defn api-attacks->schema-attacks
+  "Takes a parsed response to the attacks endpoint and returns a list of attacks matching the Attack schema."
+  [attacks]
+  (s/validate
+   [schema/Attack]
+   (map (fn [[torn-id attack]]
+          (as-> attack a
+            (map-keys attack-key-conversions a)
+            (select-keys a (keys schema/Attack))
+            (update a :attack/result result-conversions)
+            (assoc a :attack/torn-id torn-id)))
+        (:attacks attacks))))

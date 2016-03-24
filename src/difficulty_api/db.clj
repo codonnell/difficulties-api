@@ -1,7 +1,9 @@
 (ns difficulty-api.db
   (:require [com.stuartsierra.component :as component]
             [medley.core :refer [map-vals]]
-            [datomic.api :as d]))
+            [datomic.api :as d]
+            [schema.core :as s]
+            [difficulty-api.schema :as schema]))
 
 (defrecord Database [uri]
   component/Lifecycle
@@ -26,7 +28,26 @@
    :attack.result/leave :win
    :attack.result/mug :win
    :attack.result/lose :lose
-   :attack.result/run-away :lose})
+   :attack.result/run-away :lose
+   :attack.result/timeout :lose})
+
+(defn db-attack->schema-attack
+  "Converts a pair [attack result] to a map matching schema/Attack."
+  [[attack result]]
+  (s/validate
+   schema/Attack
+   (assoc attack
+          :attack/attacker (get-in attack [:attack/attacker :player/torn-id])
+          :attack/defender (get-in attack [:attack/defender :player/torn-id])
+          :attack/result result)))
+
+(defn schema-attack->db-attack
+  "Converts a map matching schema/Attack to have ident pairs for datomic."
+  [attack]
+  (assoc attack
+         :attack/attacker [:player/torn-id (:attack/attacker attack)]
+         :attack/defender [:player/torn-id (:attack/defender attack)]
+         :attack/result [:db/ident (:attack/result attack)]))
 
 (defn attacks-on
   "Returns a list of entries [{:attacker-stats stats :result :win/:lose}]"
@@ -109,39 +130,57 @@
 (defn player-by-api-key [db api-key]
   (player-by-api-key* (d/db (:conn db)) api-key))
 
+(defn add-players-tx [players]
+  (mapv (fn [player] (assoc player :db/id (d/tempid :db.part/user))) players))
+
 (defn add-player-tx [player]
-  [(merge {:db/id #db/id[:db.part/user -1]} player)])
+  (add-players-tx [player]))
+
+(defn add-players [db players]
+  (d/transact (:conn db) (add-players-tx players)))
 
 (defn add-player [db player]
-  (d/transact (:conn db) (add-player-tx player)))
+  (add-players db [player]))
 
 (def attack-pull
-  [:attack/torn-id :attack/start-time :attack/end-time {:attack/attacker [:player/torn-id]}
+  [:attack/torn-id :attack/timestamp-started :attack/timestamp-ended {:attack/attacker [:player/torn-id]}
    {:attack/defender [:player/torn-id]}])
 
 (defn attack-by-torn-id* [db torn-id]
-  (let [[[attack result]] (d/q '[:find (pull ?attack attack-pull) ?result
-                               :in $ ?attack-id attack-pull
-                               :where
-                               [?attack :attack/torn-id ?attack-id]
-                               [?attack :attack/result ?result-id]
-                               [?result-id :db/ident ?result]]
-                             db torn-id attack-pull)]
-    (when attack (assoc attack
-                        :attack/attacker (first (vec (get attack :attack/attacker)))
-                        :attack/defender (first (vec (get attack :attack/defender)))
-                        :attack/result result))))
+  (let [[db-attack] (d/q '[:find (pull ?attack attack-pull) ?result
+                           :in $ ?attack-id attack-pull
+                           :where
+                           [?attack :attack/torn-id ?attack-id]
+                           [?attack :attack/result ?result-id]
+                           [?result-id :db/ident ?result]]
+                         db torn-id attack-pull)]
+    (when db-attack
+      (db-attack->schema-attack db-attack))))
 
 (defn attack-by-torn-id [db torn-id]
-  (attack-by-torn-id* (d/db (:conn db))))
+  (attack-by-torn-id* (d/db (:conn db)) torn-id))
 
 (defn add-attacks-tx [attacks]
-  (mapv (fn [attack] (assoc attack
-                            :db/id (d/tempid :db.part/user)
-                            :attack/attacker (:attack/attacker attack)
-                            :attack/defender (:attack/defender attack)
-                            :attack/result [:db/ident (:attack/result attack)]))
+  (mapv (fn [attack]
+          (assoc (schema-attack->db-attack attack)
+                 :db/id (d/tempid :db.part/user)
+                 :attack/attacker {:player/torn-id (:attack/attacker attack)}
+                 :attack/defender {:player/torn-id (:attack/defender attack)}))
         attacks))
+
+(defn attacks-by-attacker-id* [db attacker-id]
+  (let [attacks (d/q '[:find (pull ?attack attack-pull) ?result
+                       :in $ ?attacker-id attack-pull
+                       :where
+                       [?attack :attack/attacker ?attacker]
+                       [?attacker :player/torn-id ?attacker-id]
+                       [?attack :attack/result ?result-id]
+                       [?result-id :db/ident ?result]]
+                     db attacker-id attack-pull)]
+    attacks))
+
+(defn attacks-by-attacker-id [db attacker-id]
+  (attacks-by-attacker-id* (d/db (:conn db)) attacker-id))
 
 (defn add-attack-tx [attack]
   (add-attacks-tx [attack]))
@@ -151,3 +190,4 @@
 
 (defn add-attack [db attack]
   (d/transact (:conn db) (add-attack-tx attack)))
+
