@@ -13,7 +13,7 @@
     (throw (ex-info "Invalid API key" {:api-key api-key
                                        :type :invalid-api-key}))))
 
-(defn difficulties [http-client db api-key torn-ids]
+(defn difficulties [db api-key torn-ids]
   (if-let [attacker-id (:player/torn-id (db/player-by-api-key db api-key))]
     (db/difficulties db attacker-id torn-ids)
     (throw (ex-info "Unknown API key" {:api-key api-key

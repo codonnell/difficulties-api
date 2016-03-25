@@ -87,8 +87,8 @@
 
 ;; ready for entry to datomic
 (def db-test-attack {:attack/torn-id 15
-                     :attack/attacker [:player/torn-id 1]
-                     :attack/defender [:player/torn-id 2]
+                     :attack/attacker {:player/torn-id 1}
+                     :attack/defender {:player/torn-id 2}
                      :attack/timestamp-started (java.util.Date. (long 1))
                      :attack/timestamp-ended (java.util.Date. (long 100))
                      :attack/result [:db/ident :attack.result/hospitalize]})
@@ -117,21 +117,21 @@
 
 (def schema-anon-attack {:attack/torn-id 17
                          :attack/attacker nil
-                         :attack/defender 9
+                         :attack/defender 1
                          :attack/timestamp-started (java.util.Date. (long 1))
                          :attack/timestamp-ended (java.util.Date. (long 100))
                          :attack/result :attack.result/stalemate})
 
 ;; ready for entry to datomic
 (def db-anon-attack {:attack/torn-id 17
-                     :attack/defender [:player/torn-id 9]
+                     :attack/defender {:player/torn-id 1}
                      :attack/timestamp-started (java.util.Date. (long 1))
                      :attack/timestamp-ended (java.util.Date. (long 100))
                      :attack/result [:db/ident :attack.result/stalemate]})
 
 ;; tuple return from datomic
 (def return-anon-attack [{:attack/torn-id 17
-                          :attack/defender {:player/torn-id 9}
+                          :attack/defender {:player/torn-id 1}
                           :attack/timestamp-started (java.util.Date. (long 1))
                           :attack/timestamp-ended (java.util.Date. (long 100))}
                          :attack.result/stalemate])

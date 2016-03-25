@@ -31,11 +31,6 @@
    :attack.result/run-away :lose
    :attack.result/timeout :lose})
 
-(def PlayerEntity
-  (s/conditional (fn [[k v]] (and (= :player/torn-id k)
-                                  (integer? v)))
-                 [s/Any]))
-
 (def ResultEntity
   (s/conditional (fn [[k v]] (and (= :db/ident k)
                                   (set (keys result-map)) v))
@@ -43,8 +38,8 @@
 
 (def DbAttack
   {:attack/torn-id s/Int
-   (s/optional-key :attack/attacker) PlayerEntity
-   :attack/defender PlayerEntity
+   (s/optional-key :attack/attacker) {:player/torn-id s/Int}
+   :attack/defender {:player/torn-id s/Int}
    :attack/result ResultEntity
    :attack/timestamp-started s/Inst
    :attack/timestamp-ended s/Inst})
@@ -66,13 +61,13 @@
   (s/validate
    DbAttack
    (as-> attack a
-       (assoc a
-        :attack/attacker [:player/torn-id (:attack/attacker attack)]
-        :attack/defender [:player/torn-id (:attack/defender attack)]
-        :attack/result [:db/ident (:attack/result attack)])
-       (if (nil? (:attack/attacker attack))
-         (dissoc a :attack/attacker)
-         a))))
+     (assoc a
+            :attack/attacker {:player/torn-id (:attack/attacker attack)}
+            :attack/defender {:player/torn-id (:attack/defender attack)}
+            :attack/result [:db/ident (:attack/result attack)])
+     (if (nil? (:attack/attacker attack))
+       (dissoc a :attack/attacker)
+       a))))
 
 (defn attacks-on
   "Returns a list of entries [{:attacker-stats stats :result :win/:lose}]"
@@ -187,10 +182,7 @@
 
 (defn add-attacks-tx [attacks]
   (mapv (fn [attack]
-          (assoc (schema-attack->db-attack attack)
-                 :db/id (d/tempid :db.part/user)
-                 :attack/attacker {:player/torn-id (:attack/attacker attack)}
-                 :attack/defender {:player/torn-id (:attack/defender attack)}))
+          (assoc (schema-attack->db-attack attack) :db/id (d/tempid :db.part/user)))
         attacks))
 
 (defn attacks-by-attacker-id* [db attacker-id]
