@@ -20,5 +20,6 @@
                                         :type :unknown-api-key}))))
 
 (defn update-attacks [http-client db api-key]
-  (when-let [torn-id (:player/torn-id (db/player-by-api-key db api-key))]
-    (db/add-attacks db (api/api-attacks->schema-attacks (api/attacks http-client api-key)))))
+  (if-let [torn-id (:player/torn-id (db/player-by-api-key db api-key))]
+    (db/add-attacks db (api/api-attacks->schema-attacks (api/attacks http-client api-key)))
+    (throw (ex-info "Unknown attacker" {:player/api-key api-key}))))
