@@ -12,10 +12,28 @@
                                                    battle-stats-test-data]]
              [difficulty-api.system :refer [test-system]]))
 
+(defrecord TestDatabase [uri]
+  component/Lifecycle
+
+  (start [component]
+    (d/create-database uri)
+    (let [conn (d/connect uri)]
+      @(d/transact conn (read-string (slurp "schema.edn")))
+      (assoc component :conn conn)))
+
+  (stop [component]
+    (when-let [conn (:conn component)]
+      (d/release conn)
+      (d/delete-database uri))
+    (assoc component :conn nil)))
+
+(defn test-database [uri]
+  (map->TestDatabase {:uri uri}))
+
 (declare ^:dynamic system)
 
 (defn create-and-destroy-system [f]
-  (binding [system (test-system {})]
+  (binding [system (assoc (test-system {}) :db (test-database (format "datomic:mem://difficulty-api-test%s" (d/squuid))))]
     (try
       (f)
       (finally (component/stop-system system)))))
@@ -137,9 +155,11 @@
     :player/torn-id 1
     :player/battle-stats 5.0}
    {:db/id #db/id [:db.part/user -2]
+    :player/api-key "bar"
     :player/torn-id 2
     :player/battle-stats 10.0}
    {:db/id #db/id [:db.part/user -3]
+    :player/api-key "baz"
     :player/torn-id 3
     :player/battle-stats 20.0}
    {:db/id #db/id [:db.part/user -4]
@@ -192,3 +212,23 @@
     :attack/timestamp-started (java.util.Date. (long 1))
     :attack/timestamp-ended (java.util.Date. (long 100))
     :attack/result :attack.result/timeout}])
+
+(deftest difficulties-test
+  (let [system (component/start-system system)
+        query-string (fn [api-key] (format "torn-ids=4&torn-ids=5&torn-ids=6&torn-ids=7&api-key=%s" api-key))]
+    (d/transact (get-in system [:db :conn]) difficulties-test-data)
+    (is (= {"result" {"4" "unknown" "5" "impossible" "6" "medium" "7" "impossible"}}
+           (decode-response-body ((get-in system [:app :app])
+                                  (mock-request {:uri "/api/difficulties"
+                                                 :query-string (query-string "foo")
+                                                 :request-method :get})))))
+    (is (= {"result" {"4" "easy" "5" "impossible" "6" "medium" "7" "medium"}}
+           (decode-response-body ((get-in system [:app :app])
+                                  (mock-request {:uri "/api/difficulties"
+                                                 :query-string (query-string "bar")
+                                                 :request-method :get})))))
+    (is (= {"result" {"4" "easy" "5" "unknown" "6" "medium" "7" "easy"}}
+           (decode-response-body ((get-in system [:app :app])
+                                  (mock-request {:uri "/api/difficulties"
+                                                 :query-string (query-string "baz")
+                                                 :request-method :get})))))))
