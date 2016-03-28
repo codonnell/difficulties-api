@@ -45,7 +45,7 @@
         :query-params [api-key :- s/Str
                        torn-ids :- [s/Int]]
         :summary "returns a list of difficulties"
-        (ok {:result (dispatch/difficulties http-client db api-key torn-ids)})))))
+        (ok {:result (dispatch/difficulties db api-key torn-ids)})))))
 
 (defrecord App [http-client db]
   component/Lifecycle
