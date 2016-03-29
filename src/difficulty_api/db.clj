@@ -3,6 +3,8 @@
             [medley.core :refer [map-vals]]
             [datomic.api :as d]
             [schema.core :as s]
+            [clj-time.core :refer [now]]
+            [clj-time.coerce :refer [to-date]]
             [difficulty-api.schema :as schema]))
 
 (defrecord Database [uri]
@@ -130,7 +132,7 @@
 (defn difficulties [db attacker-id defender-ids]
   (difficulties* (d/db (:conn db)) attacker-id defender-ids))
 
-(def player-pull [:player/torn-id :player/api-key :player/battle-stats])
+(def player-pull [:player/torn-id :player/api-key :player/battle-stats :player/last-attack-update])
 
 (defn player-by-torn-id* [db torn-id]
   (d/q '[:find (pull ?player player-pull) .
@@ -208,3 +210,8 @@
 (defn add-attack [db attack]
   (d/transact (:conn db) (add-attack-tx attack)))
 
+(defn update-attacks [db torn-id attacks]
+  (d/transact (:conn db) (conj (add-attacks-tx attacks)
+                               {:db/id (d/tempid :db.part/user)
+                                :player/torn-id torn-id
+                                :player/last-attack-update (to-date (now))})))

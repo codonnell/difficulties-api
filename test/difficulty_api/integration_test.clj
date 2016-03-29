@@ -75,7 +75,7 @@
             :player/api-key      "foo"}
            (do (dispatch/add-api-key valid-api-key-http-client (:db system) "foo")
                (Thread/sleep 100)
-               (db/player-by-api-key (:db system) "foo"))))))
+               (dissoc (db/player-by-api-key (:db system) "foo") :player/last-attack-update))))))
 
 (deftest doesnt-add-invalid-api-key
   (let [system (component/start-system

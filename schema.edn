@@ -21,6 +21,12 @@
   :db/cardinality :db.cardinality/one
   :db/doc "The sum of a player's battle stats"
   :db.install/_attribute :db.part/db}
+ {:db/id #db/id[:db.part/db]
+  :db/ident :player/last-attack-update
+  :db/valueType :db.type/instant
+  :db/cardinality :db.cardinality/one
+  :db/doc "Timestamp for the most recent attack log update"
+  :db.install/_attribute :db.part/db}
 
  ;; attack
 
