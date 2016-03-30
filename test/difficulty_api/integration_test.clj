@@ -4,6 +4,8 @@
              [cheshire.core :as json]
              [clojure.pprint :refer [pprint]]
              [datomic.api :as d]
+             [clj-time.core :as t]
+             [clj-time.coerce :refer [to-date]]
              [difficulty-api.dispatch :as dispatch]
              [difficulty-api.db :as db]
              [difficulty-api.torn-api :as api]
@@ -96,17 +98,16 @@
     :attack/timestamp-ended (java.util.Date. (long 500))
     :attack/result [:db/ident :attack.result/mug]}])
 
-(def add-test-player-tx
-  [{:db/id (d/tempid :db.part/user)
-    :player/torn-id 2
-    :player/api-key "bar"
-    :player/battle-stats 35.2}])
+(def test-player
+  {:player/torn-id 2
+   :player/api-key "bar"
+   :player/battle-stats 35.2})
 
 (def attack-resp
   {:attacks {1 {:timestamp_started 3
                 :timestamp_ended 500
                 :attacker_id 2
-                :attacker_name "buzz lightyear"
+                :attacker_name "superman"
                 :attacker_faction ""
                 :defender_id 5
                 :defender_name "woody"
@@ -118,7 +119,7 @@
                 :attacker_id ""
                 :attacker_name ""
                 :attacker_faction ""
-                :defender_id 4
+                :defender_id 2
                 :defender_name "superman"
                 :defender_faction 500
                 :result "Lose"
@@ -128,7 +129,7 @@
                 :attacker_id ""
                 :attacker_name ""
                 :attacker_faction ""
-                :defender_id 4
+                :defender_id 2
                 :defender_name "superman"
                 :defender_faction 500
                 :result "Lose"
@@ -145,8 +146,22 @@
     (is (= 1 (count (attacks))))
     (is (thrown? RuntimeException
                  (dispatch/update-attacks (get-in system [:app :http-client]) (:db system) "bar")))
-    (d/transact (get-in system [:db :conn]) add-test-player-tx)
+    (db/add-player (:db system) test-player)
     (dispatch/update-attacks (get-in system [:app :http-client]) (:db system) "bar")
+    (is (= 3 (count (attacks))))))
+
+(deftest update-attacks-if-outdated-test
+  (let [system (component/start-system
+                (assoc-in system [:app :http-client] (test-client attack-resp)))
+        attacks (fn [] (d/q '[:find (pull ?attack attack-pull)
+                              :in $ attack-pull
+                              :where [?attack :attack/torn-id]]
+                            (d/db (get-in system [:db :conn])) db/attack-pull))]
+    (db/add-player (:db system) (assoc test-player :player/last-attack-update (t/now)))
+    (dispatch/update-attacks-if-outdated (get-in system [:app :http-client]) (:db system) "bar")
+    (is (= 0 (count (attacks))))
+    (db/add-player (:db system) (assoc test-player :player/last-attack-update (t/ago (t/hours 2))))
+    (dispatch/update-attacks-if-outdated (get-in system [:app :http-client]) (:db system) "bar")
     (is (= 3 (count (attacks))))))
 
 (def difficulties-test-data

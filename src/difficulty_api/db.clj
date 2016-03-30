@@ -4,7 +4,7 @@
             [datomic.api :as d]
             [schema.core :as s]
             [clj-time.core :refer [now]]
-            [clj-time.coerce :refer [to-date]]
+            [clj-time.coerce :refer [to-date from-date]]
             [difficulty-api.schema :as schema]))
 
 (defrecord Database [uri]
@@ -71,6 +71,20 @@
        (dissoc a :attack/attacker)
        a))))
 
+(defn db-player->schema-player
+  "Translates a player to the schema representation. That just means changing the :player/last-attack-update from a java Date into a joda DateTime."
+  [player]
+  (if (get player :player/last-attack-update)
+    (update player :player/last-attack-update from-date)
+    player))
+
+(defn schema-player->db-player
+  "Translates a player to the db representation. That just means changing the :player/last-attack-update from a joda DateTime into a java Date."
+  [player]
+  (if (get player :player/last-attack-update)
+    (update player :player/last-attack-update to-date)
+    player))
+
 (defn attacks-on
   "Returns a list of entries [{:attacker-stats stats :result :win/:lose}]"
   [db defender-ids]
@@ -135,25 +149,29 @@
 (def player-pull [:player/torn-id :player/api-key :player/battle-stats :player/last-attack-update])
 
 (defn player-by-torn-id* [db torn-id]
-  (d/q '[:find (pull ?player player-pull) .
-         :in $ ?torn-id player-pull
-         :where [?player :player/torn-id ?torn-id]]
-       db torn-id player-pull))
+  (db-player->schema-player
+   (d/q '[:find (pull ?player player-pull) .
+          :in $ ?torn-id player-pull
+          :where [?player :player/torn-id ?torn-id]]
+        db torn-id player-pull)))
 
 (defn player-by-torn-id [db torn-id]
   (player-by-torn-id* (d/db (:conn db)) torn-id))
 
 (defn player-by-api-key* [db api-key]
-  (d/q '[:find (pull ?player player-pull) .
-         :in $ ?api-key player-pull
-         :where [?player :player/api-key ?api-key]]
-       db api-key player-pull))
+  (db-player->schema-player
+   (d/q '[:find (pull ?player player-pull) .
+          :in $ ?api-key player-pull
+          :where [?player :player/api-key ?api-key]]
+        db api-key player-pull)))
 
 (defn player-by-api-key [db api-key]
   (player-by-api-key* (d/db (:conn db)) api-key))
 
 (defn add-players-tx [players]
-  (mapv (fn [player] (assoc player :db/id (d/tempid :db.part/user))) players))
+  (mapv (fn [player] (assoc (schema-player->db-player player)
+                            :db/id (d/tempid :db.part/user)))
+        players))
 
 (defn add-player-tx [player]
   (add-players-tx [player]))
