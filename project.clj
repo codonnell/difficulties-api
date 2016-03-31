@@ -13,6 +13,7 @@
                  [com.taoensso/timbre "4.3.1"]]
   :ring {:handler difficulty-api.handler/app}
   :uberjar-name "server.jar"
+  :main difficulties-api.main
   :profiles {:dev {:source-paths ["dev"]
                    :dependencies [[reloaded.repl "0.2.1"]
                                   [javax.servlet/servlet-api "2.5"]
