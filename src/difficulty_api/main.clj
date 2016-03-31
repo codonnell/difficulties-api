@@ -6,5 +6,5 @@
 (defn -main [& args]
   (let [sys (system/dev-system {:db-uri "datomic:mem://difficulty-api"})]
     (try
-      (component/start sys)
-      (finally (component/stop sys)))))
+      (component/start-system sys)
+      (finally (component/stop-system sys)))))
