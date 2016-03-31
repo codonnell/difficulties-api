@@ -3,8 +3,9 @@
             [ring.util.http-response :refer :all]
             [schema.core :as s]
             [com.stuartsierra.component :as component]
-            [clojure.pprint :refer [pprint]]
             [cheshire.core :as json]
+            [taoensso.timbre :as log]
+            [clojure.string :as string]
             [difficulty-api.dispatch :as dispatch]
             [difficulty-api.torn-api :as api]))
 
@@ -16,8 +17,13 @@
 
 (defn wrap-logging [handler]
   (fn [req]
-    (pprint req)
+    (log/info req)
     (handler req)))
+
+(defn wrap-cors [handler]
+  (fn [req]
+    (let [response (handler req)]
+      (assoc-in response [:headers "Access-Control-Allow-Origin"] "*"))))
 
 (defn app [http-client db]
   (api
@@ -32,20 +38,23 @@
 
     (context "/api" []
       :tags ["api"]
-      ;; :middleware [wrap-logging]
+      :middleware [wrap-cors]
 
       (POST "/apikey" []
           :return {:result s/Bool}
           :query-params [api-key :- s/Str]
           :summary "adds api key to database"
-          (ok {:result (dispatch/add-api-key http-client db api-key)}))
+          (ok (do (log/info (format "Adding API Key: %s" api-key))
+                  {:result (dispatch/add-api-key http-client db api-key)})))
 
       (GET "/difficulties" []
         :return {:result {s/Int s/Keyword}}
         :query-params [api-key :- s/Str
                        torn-ids :- [s/Int]]
         :summary "returns a list of difficulties"
-        (ok {:result (do (future (dispatch/update-attacks-if-outdated http-client db api-key))
+        (ok {:result (do (log/info (format "Getting difficulties for API key %s of IDs %s"
+                                              api-key (string/join ", " torn-ids)))
+                         (dispatch/update-attacks-if-outdated http-client db api-key)
                          (dispatch/difficulties db api-key torn-ids))})))))
 
 (defrecord App [http-client db]

@@ -6,7 +6,8 @@ FIXME
 
 ### Run the application locally
 
-`lein ring server`
+```lein repl
+(go)```
 
 ### Run the tests
 
