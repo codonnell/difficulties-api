@@ -14,6 +14,7 @@
   :ring {:handler difficulty-api.handler/app}
   :uberjar-name "server.jar"
   :main difficulties-api.main
+  :aot difficulties-api.main
   :profiles {:dev {:source-paths ["dev"]
                    :dependencies [[reloaded.repl "0.2.1"]
                                   [javax.servlet/servlet-api "2.5"]
