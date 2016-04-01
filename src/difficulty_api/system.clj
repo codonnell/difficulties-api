@@ -8,7 +8,7 @@
             [difficulty-api.handler :refer [new-app]]))
 
 (defn prod-system [config-options]
-  (let [env-file (config/load "resources/env.edn" :config-file)
+  (let [env-file (config/get "resources/env.edn" :config-file)
         conf (merge config-options (config/load "resources/config.edn" env-file))]
     (component/system-map
      :logger (new-logger)
@@ -21,7 +21,7 @@
               [:app]))))
 
 (defn dev-system [config-options]
-  (let [env-file (config/load "resources/env.edn" :config-file)
+  (let [env-file (config/get "resources/env.edn" :config-file)
         conf (merge config-options (config/load "resources/config.edn"))]
     (component/system-map
      :logger (new-logger)
@@ -34,7 +34,7 @@
               [:app]))))
 
 (defn test-system [config-options]
-  (let [env-file (config/load "resources/env.edn" :config-file)
+  (let [env-file (config/get "resources/env.edn" :config-file)
         {:keys [http-client] :or {http-client clj-http-client} :as conf}
         (merge config-options (config/load "resources/config.edn" env-file))]
     (component/system-map
