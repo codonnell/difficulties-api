@@ -11,10 +11,8 @@
                  [com.datomic/datomic-pro "0.9.5350"]
                  [com.stuartsierra/component "0.3.1"]
                  [com.taoensso/timbre "4.3.1"]]
-  :ring {:handler difficulty-api.handler/app}
-  :uberjar-name "server.jar"
-  :main difficulties-api.main
-  :aot difficulties-api.main
+  :main difficulty-api.main
+  :aot [difficulty-api.main]
   :profiles {:dev {:source-paths ["dev"]
                    :dependencies [[reloaded.repl "0.2.1"]
                                   [javax.servlet/servlet-api "2.5"]
