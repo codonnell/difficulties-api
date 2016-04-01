@@ -8,8 +8,8 @@
             [difficulty-api.handler :refer [new-app]]))
 
 (defn prod-system [config-options]
-  (let [conf (merge config-options
-                                     (config/load "resources/config.edn" "resources/prod.edn"))]
+  (let [env-file (config/load "resources/env.edn" :config-file)
+        conf (merge config-options (config/load "resources/config.edn" env-file))]
     (component/system-map
      :logger (new-logger)
      :db (new-database (get-in conf [:database :uri]))
@@ -21,8 +21,8 @@
               [:app]))))
 
 (defn dev-system [config-options]
-  (let [conf (merge config-options
-                                (config/load "resources/config.edn"))]
+  (let [env-file (config/load "resources/env.edn" :config-file)
+        conf (merge config-options (config/load "resources/config.edn"))]
     (component/system-map
      :logger (new-logger)
      :db (new-database (get-in conf [:database :uri]))
@@ -34,8 +34,9 @@
               [:app]))))
 
 (defn test-system [config-options]
-  (let [{:keys [http-client] :or {http-client clj-http-client} :as conf}
-        (merge config-options (config/load "resources/config.edn" "resources/test.edn"))]
+  (let [env-file (config/load "resources/env.edn" :config-file)
+        {:keys [http-client] :or {http-client clj-http-client} :as conf}
+        (merge config-options (config/load "resources/config.edn" env-file))]
     (component/system-map
      :logger (new-logger)
      :db (new-database (get-in conf [:database :uri]))

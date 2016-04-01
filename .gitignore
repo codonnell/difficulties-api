@@ -1,5 +1,6 @@
 /log/*
 /target
+/resources/env.edn
 .lein-repl-history
 .nrepl-port
 .lein-failures
