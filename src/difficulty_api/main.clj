@@ -4,7 +4,7 @@
   (:gen-class))
 
 (defn -main [& args]
-  (let [sys (system/dev-system {:db-uri "datomic:mem://difficulty-api"})]
+  (let [sys (system/system {})]
     (try
       (component/start-system sys)
       (finally (component/stop-system sys)))))
