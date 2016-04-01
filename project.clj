@@ -10,6 +10,7 @@
                  [org.clojure/core.async "0.2.374"]
                  [com.datomic/datomic-pro "0.9.5350"]
                  [com.stuartsierra/component "0.3.1"]
+                 [levand/immuconf "0.1.0"]
                  [com.taoensso/timbre "4.3.1"]]
   :main difficulty-api.main
   :aot [difficulty-api.main]
