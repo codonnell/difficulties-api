@@ -1,2 +1,2 @@
-{:database {:uri "datomic:dev://difficulty-api"}
+{:database {:uri "datomic:sql://difficulty-api?jdbc:postgresql://localhost:5432/datomic?user=datomic&password=datomic"}
  :server {:port 80}}
