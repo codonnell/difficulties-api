@@ -229,21 +229,23 @@
     :attack/result :attack.result/timeout}])
 
 (deftest difficulties-test
-  (let [system (component/start-system system)
-        query-string (fn [api-key] (format "torn-ids=4&torn-ids=5&torn-ids=6&torn-ids=7&api-key=%s" api-key))]
+  (let [system (component/start-system system)]
     (d/transact (get-in system [:db :conn]) difficulties-test-data)
     (is (= {"result" {"4" "unknown" "5" "impossible" "6" "medium" "7" "impossible"}}
            (decode-response-body ((get-in system [:app :app])
                                   (mock-request {:uri "/api/difficulties"
-                                                 :query-string (query-string "foo")
-                                                 :request-method :get})))))
+                                                 :body (.getBytes (json/encode {:torn-ids [4 5 6 7]}))
+                                                 :query-string "api-key=foo"
+                                                 :request-method :post})))))
     (is (= {"result" {"4" "easy" "5" "impossible" "6" "medium" "7" "medium"}}
            (decode-response-body ((get-in system [:app :app])
                                   (mock-request {:uri "/api/difficulties"
-                                                 :query-string (query-string "bar")
-                                                 :request-method :get})))))
+                                                 :body (.getBytes (json/encode {:torn-ids [4 5 6 7]}))
+                                                 :query-string "api-key=bar"
+                                                 :request-method :post})))))
     (is (= {"result" {"4" "easy" "5" "unknown" "6" "medium" "7" "easy"}}
            (decode-response-body ((get-in system [:app :app])
                                   (mock-request {:uri "/api/difficulties"
-                                                 :query-string (query-string "baz")
-                                                 :request-method :get})))))))
+                                                 :body (.getBytes (json/encode {:torn-ids [4 5 6 7]}))
+                                                 :query-string "api-key=baz"
+                                                 :request-method :post})))))))

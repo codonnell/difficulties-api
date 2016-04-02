@@ -49,13 +49,13 @@
 
       (POST "/difficulties" []
         :return {:result {s/Int s/Keyword}}
-        :query-params [api-key :- s/Str
-                       torn-ids :- [s/Int]]
+        :query-params [api-key :- s/Str]
+        :body [body {:torn-ids [s/Int]}]
         :summary "returns a list of difficulties"
         (ok {:result (do (log/info (format "Getting difficulties for API key %s of IDs %s"
-                                              api-key (string/join ", " torn-ids)))
+                                           api-key (string/join ", " (:torn-ids body))))
                          (dispatch/update-attacks-if-outdated http-client db api-key)
-                         (dispatch/difficulties db api-key torn-ids))})))))
+                         (dispatch/difficulties db api-key (:torn-ids body)))})))))
 
 (defrecord App [http-client db]
   component/Lifecycle

@@ -13,10 +13,10 @@
                  [levand/immuconf "0.1.0"]
                  [org.postgresql/postgresql "9.3-1102-jdbc41"]
                  [com.taoensso/timbre "4.3.1"]]
-  :main difficulty-api.main
-  :aot [difficulty-api.main]
   :profiles {:dev {:source-paths ["dev"]
                    :dependencies [[reloaded.repl "0.2.1"]
                                   [javax.servlet/servlet-api "2.5"]
                                   [ring/ring-mock "0.3.0"]]
-                   :plugins [[lein-ring "0.9.7"]]}})
+                   :plugins [[lein-ring "0.9.7"]]}
+             :uberjar {:main difficulty-api.main
+                       :aot [difficulty-api.main]}})
