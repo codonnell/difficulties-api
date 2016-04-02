@@ -47,7 +47,7 @@
           (ok (do (log/info (format "Adding API Key: %s" api-key))
                   {:result (dispatch/add-api-key http-client db api-key)})))
 
-      (GET "/difficulties" []
+      (POST "/difficulties" []
         :return {:result {s/Int s/Keyword}}
         :query-params [api-key :- s/Str
                        torn-ids :- [s/Int]]
