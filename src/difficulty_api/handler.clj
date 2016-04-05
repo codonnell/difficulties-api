@@ -16,7 +16,7 @@
   (not-found (json/encode {:error {:msg "Unknown API key" :api-key (:api-key data)}})))
 
 (defn default-exception-handler [^Exception e data request]
-  (log/error (str "Unhandled exception: " (.toString e) (.toString (.getStackTrace e)) data))
+  (log/error (str "Unhandled exception: " (.toString e) (string/join "\n" (map str (.getStackTrace e))) data))
   (internal-server-error {:error "Unhandled server error. Please notify the developer."}))
 
 (defn wrap-logging [handler]
