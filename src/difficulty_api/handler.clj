@@ -15,6 +15,10 @@
 (defn unknown-api-key-handler [^Exception e data request]
   (not-found (json/encode {:error {:msg "Unknown API key" :api-key (:api-key data)}})))
 
+(defn default-exception-handler [^Exception e data request]
+  (log/error (str "Unhandled exception: " (.toString e) (.toString (.getStackTrace e)) data))
+  (internal-server-error {:error "Unhandled server error. Please notify the developer."}))
+
 (defn wrap-logging [handler]
   (fn [req]
     (log/info req)
@@ -34,7 +38,8 @@
                     :description "Compojure Api example"}
              :tags [{:name "api", :description "some apis"}]}}
      :exceptions {:handlers {:unknown-api-key unknown-api-key-handler
-                             :invalid-api-key invalid-api-key-handler}}}
+                             :invalid-api-key invalid-api-key-handler
+                             :compojure.api.exception/default default-exception-handler}}}
 
     (context "/api" []
       :tags ["api"]
