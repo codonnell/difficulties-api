@@ -112,6 +112,7 @@
   Otherwise returns nil."
   [caller-stats {:keys [attacker-stats result]}]
   (cond
+    (nil? attacker-stats) nil
     (and (>= caller-stats attacker-stats) (= :win result)) :easy
     (and (<= caller-stats attacker-stats) (= :lose result)) :impossible
     :default nil))
@@ -125,10 +126,13 @@
              (condp = [player-difficulty attack-difficulty]
                [:unknown :easy] :easy
                [:unknown :impossible] :impossible
+               [:unknown nil] :unknown
                [:easy :easy] :easy
                [:easy :impossible] (reduced :medium)
+               [:easy nil] :easy
                [:impossible :easy] (reduced :medium)
-               [:impossible :impossible] :impossible))
+               [:impossible :impossible] :impossible
+               [:impossible nil] :impossible))
            :unknown)))
 
 (defn difficulties*
