@@ -23,7 +23,8 @@
     :player/torn-id 3
     :player/battle-stats 20.0}
    {:db/id #db/id[:db.part/user -4]
-    :player/torn-id 4}
+    :player/torn-id 4
+    :player/battle-stats 15.0}
    {:db/id #db/id[:db.part/user -5]
     :player/torn-id 5}
    {:db/id #db/id[:db.part/user -6]
@@ -171,6 +172,8 @@
          (db/difficulties* test-db 2 [4 5 6 7])))
   (is (= {4 :unknown 5 :impossible 6 :medium 7 :impossible}
          (db/difficulties* test-db 1 [4 5 6 7])))
+  (is (= {3 :unknown}
+         (db/difficulties* test-db 4 [3])))
   (is (= {0 :unknown}
          (db/difficulties* test-db 1 [0])))
   (is (= {} (db/difficulties* test-db 1 [])))
@@ -179,7 +182,7 @@
 (deftest player-by-torn-id-test
   (is (= {:player/torn-id 1 :player/battle-stats 5.0 :player/api-key "foo"}
          (db/player-by-torn-id* test-db 1)))
-  (is (= {:player/torn-id 4} (db/player-by-torn-id* test-db 4)))
+  (is (= {:player/torn-id 4 :player/battle-stats 15.0} (db/player-by-torn-id* test-db 4)))
   (is (nil? (db/player-by-torn-id* test-db 0))))
 
 (deftest player-by-api-key-test
