@@ -4,12 +4,12 @@
             [com.stuartsierra.component :as component]))
 
 
-(defrecord Repl []
+(defrecord Repl [port]
   component/Lifecycle
 
   (start [component]
     (log/info "Starting repl...")
-    (assoc component :server (start-server :port 7888)))
+    (assoc component :server (start-server :port port)))
 
   (stop [component]
     (when-let [server (:server component)]
@@ -17,5 +17,5 @@
       (stop-server server))
     (assoc component :server nil)))
 
-(defn new-repl []
-  (map->Repl {}))
+(defn new-repl [port]
+  (map->Repl {:port port}))
