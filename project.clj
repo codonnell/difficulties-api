@@ -9,6 +9,7 @@
                  [cheshire "5.5.0"]
                  [org.clojure/core.async "0.2.374" :exclusions [org.clojure/core.memoize
                                                                 org.clojure/tools.reader]]
+                 [org.clojure/tools.nrepl "0.2.11"]
                  [com.datomic/datomic-pro "0.9.5350"]
                  [com.stuartsierra/component "0.3.1"]
                  [levand/immuconf "0.1.0"]
