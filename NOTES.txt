@@ -1,0 +1,28 @@
+For difficulty estimation, we'll start with a simple SVM.
+For each attack we'll generate a data point containing the attacker info, defender info, and a 0 or 1 depending on who won.
+
+Personal stats to use:
+logins
+useractivity
+attackswon
+xantaken
+exttaken
+networth
+traveltimes
+refills
+medicalitemsused
+awards
+age
+last action (measure in days ago)
+maximum life
+
+Steps needed for implementation:
+Get attacksfull at the start for all players?
+Write rate limit-aware personal stats update
+Update schema to add personal stats to database
+Update personal stats for all existing players
+Write function to aggregate above data into a weka-ready dataset
+Write function to train a classifier based on dataset
+Write function to classify targets based on classifier
+Evaluate effectiveness of classifier and potentially try different technique
+Write frontend code to visualize difficulties for previously unknown targets using classifier
