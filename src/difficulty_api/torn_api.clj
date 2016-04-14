@@ -79,7 +79,121 @@
                               :respect_gain s/Num
                               :timestamp_started s/Inst
                               :timestamp_ended s/Inst}}}
-    :selections ["attacks"]}})
+    :selections ["attacks"]}
+   :attacks-full
+   {:schema {:attacks {s/Int {:defender_faction s/Int
+                              :attacker_faction (s/maybe s/Int)
+                              :defender_id s/Int
+                              :attacker_id (s/maybe s/Int)
+                              :result s/Str
+                              :respect_gain s/Num
+                              :timestamp_started s/Inst
+                              :timestamp_ended s/Inst}}}
+    :selections ["attacksfull"]}
+   :personal-stats
+   {:schema {:personalstats {(s/optional-key :logins) s/Int,
+                             (s/optional-key :useractivity) s/Num,
+                             (s/optional-key :weaponsbought) s/Int,
+                             (s/optional-key :jailed) s/Int,
+                             (s/optional-key :dumpsearches) s/Int,
+                             (s/optional-key :dumpfinds) s/Int,
+                             (s/optional-key :pointssold) s/Num,
+                             (s/optional-key :daysbeendonator) s/Int,
+                             (s/optional-key :roundsfired) s/Int,
+                             (s/optional-key :attackmisses) s/Int,
+                             (s/optional-key :hospital) s/Int,
+                             (s/optional-key :attackslost) s/Int,
+                             (s/optional-key :attackhits) s/Int,
+                             (s/optional-key :attackcriticalhits) s/Int,
+                             (s/optional-key :shohits) s/Int,
+                             (s/optional-key :attackswon) s/Int,
+                             (s/optional-key :highestbeaten) s/Int,
+                             (s/optional-key :bestkillstreak) s/Int,
+                             (s/optional-key :cityfinds) s/Int,
+                             (s/optional-key :pishits) s/Int,
+                             (s/optional-key :moneymugged) s/Num,
+                             (s/optional-key :largestmug) s/Num,
+                             (s/optional-key :defendslost) s/Int,
+                             (s/optional-key :medicalitemsused) s/Int,
+                             (s/optional-key :itemsbought) s/Int,
+                             (s/optional-key :drugsused) s/Int,
+                             (s/optional-key :xantaken) s/Int,
+                             (s/optional-key :attacksstealthed) s/Int,
+                             (s/optional-key :piehits) s/Int,
+                             (s/optional-key :attacksassisted) s/Int,
+                             (s/optional-key :mailssent) s/Int,
+                             (s/optional-key :factionmailssent) s/Int,
+                             (s/optional-key :defendswon) s/Int,
+                             (s/optional-key :trainsreceived) s/Int,
+                             (s/optional-key :exttaken) s/Int,
+                             (s/optional-key :defendsstalemated) s/Int,
+                             (s/optional-key :traveltimes) s/Int,
+                             (s/optional-key :mextravel) s/Int,
+                             (s/optional-key :itemsboughtabroad) s/Num,
+                             (s/optional-key :pointsbought) s/Num,
+                             (s/optional-key :lontravel) s/Int,
+                             (s/optional-key :itemssent) s/Int,
+                             (s/optional-key :switravel) s/Int,
+                             (s/optional-key :bazaarcustomers) s/Int,
+                             (s/optional-key :bazaarsales) s/Num,
+                             (s/optional-key :bazaarprofit) s/Num,
+                             (s/optional-key :itemsdumped) s/Int,
+                             (s/optional-key :cantravel) s/Int,
+                             (s/optional-key :hawtravel) s/Int,
+                             (s/optional-key :caytravel) s/Int,
+                             (s/optional-key :japtravel) s/Int,
+                             (s/optional-key :dubtravel) s/Int,
+                             (s/optional-key :bountiesreceived) s/Int,
+                             (s/optional-key :pcptaken) s/Int,
+                             (s/optional-key :overdosed) s/Int,
+                             (s/optional-key :soutravel) s/Int,
+                             (s/optional-key :chitravel) s/Int,
+                             (s/optional-key :bountiesplaced) s/Int,
+                             (s/optional-key :totalbountyspent) s/Num,
+                             (s/optional-key :virusescoded) s/Int,
+                             (s/optional-key :smghits) s/Int,
+                             (s/optional-key :argtravel) s/Int,
+                             (s/optional-key :respectforfaction) s/Num,
+                             (s/optional-key :bountiescollected) s/Int,
+                             (s/optional-key :totalbountyreward) s/Num,
+                             (s/optional-key :yourunaway) s/Int,
+                             (s/optional-key :revivesreceived) s/Int,
+                             (s/optional-key :rifhits) s/Int,
+                             (s/optional-key :cantaken) s/Int,
+                             (s/optional-key :victaken) s/Int,
+                             (s/optional-key :trades) s/Int,
+                             (s/optional-key :auctionswon) s/Int,
+                             (s/optional-key :auctionsells) s/Int,
+                             (s/optional-key :theyrunaway) s/Int,
+                             (s/optional-key :machits) s/Int,
+                             (s/optional-key :slahits) s/Int,
+                             (s/optional-key :friendmailssent) s/Int,
+                             (s/optional-key :shrtaken) s/Int,
+                             (s/optional-key :bloodwithdrawn) s/Int,
+                             (s/optional-key :heahits) s/Int,
+                             (s/optional-key :grehits) s/Int,
+                             (s/optional-key :axehits) s/Int,
+                             (s/optional-key :peoplebusted) s/Int,
+                             (s/optional-key :networth) s/Num,
+                             (s/optional-key :chahits) s/Int,
+                             (s/optional-key :attacksdraw) s/Int,
+                             (s/optional-key :companymailssent) s/Int,
+                             (s/optional-key :revives) s/Int,
+                             (s/optional-key :failedbusts) s/Int,
+                             (s/optional-key :peoplebought) s/Int,
+                             (s/optional-key :peopleboughtspent) s/Num,
+                             (s/optional-key :spousemailssent) s/Int,
+                             (s/optional-key :meritsbought) s/Int,
+                             (s/optional-key :kettaken) s/Int,
+                             (s/optional-key :lsdtaken) s/Int,
+                             (s/optional-key :refills) (s/maybe s/Int),
+                             (s/optional-key :personalsplaced) s/Int,
+                             (s/optional-key :opitaken) s/Int,
+                             (s/optional-key :spetaken) s/Int,
+                             (s/optional-key :itemswon) s/Int,
+                             (s/optional-key :statenhancersused) s/Int,
+                             (s/optional-key :classifiedadsplaced) s/Int}}
+    :selections ["personalstats"]}})
 
 (defn long->Date [timestamp]
   (java.util.Date. (long timestamp)))
@@ -133,6 +247,8 @@
 
 (def attacks (partial user-api-call :attacks))
 
+(def attacks-full (partial user-api-call :attacks-full))
+
 (def attack-key-conversions
   {:defender_id :attack/defender
    :attacker_id :attack/attacker
@@ -161,3 +277,17 @@
             (update a :attack/result result-conversions)
             (assoc a :attack/torn-id torn-id)))
         (:attacks attacks))))
+
+(def personal-stats (comp
+                     ;; Add in missing keys with value 0
+                     (fn [m]
+                       (let [stats
+                             {:personalstats
+                              (merge
+                               (zipmap (map :k (keys (get-in queries [:personal-stats :schema :personalstats])))
+                                       (repeat 0))
+                               (:personalstats m))}]
+                         (if-let [refills (get-in stats [:personalstats :refills])]
+                           stats
+                           (assoc-in stats [:personalstats :refills] 0))))
+                     (partial user-api-call :personal-stats)))

@@ -136,3 +136,126 @@
             6 (assoc api-attack :result "Run away")
             7 (assoc api-attack :result "Timeout")
             8 anon-api-attack}}))))
+
+(def bodybagger-personalstats
+  {"personalstats" {"bazaarcustomers" 3244,
+                    "bazaarsales" 150735,
+                    "bazaarprofit" 434532327577,
+                    "useractivity" 24776281,
+                    "itemswon" 0,
+                    "itemsbought" 796,
+                    "pointsbought" 118979,
+                    "itemsboughtabroad" 15159,
+                    "weaponsbought" 100,
+                    "trades" 7112,
+                    "itemssent" 266,
+                    "auctionswon" 100,
+                    "auctionsells" 1,
+                    "pointssold" 401394,
+                    "attackswon" 34253,
+                    "attackslost" 486,
+                    "attacksdraw" 386,
+                    "bestkillstreak" 2539,
+                    "moneymugged" 72427429674,
+                    "attacksstealthed" 23605,
+                    "attackhits" 121221,
+                    "attackmisses" 13373,
+                    "attackcriticalhits" 20913,
+                    "respectforfaction" 47850,
+                    "defendswon" 29529,
+                    "defendslost" 2251,
+                    "defendsstalemated" 589,
+                    "roundsfired" 160154,
+                    "yourunaway" 3926,
+                    "theyrunaway" 1010,
+                    "highestbeaten" 100,
+                    "peoplebusted" 10002,
+                    "failedbusts" 2324,
+                    "peoplebought" 532,
+                    "peopleboughtspent" 42285700,
+                    "virusescoded" 545,
+                    "cityfinds" 198,
+                    "traveltimes" 1279,
+                    "bountiesplaced" 112,
+                    "bountiesreceived" 156,
+                    "bountiescollected" 2551,
+                    "totalbountyreward" 3115210202,
+                    "revives" 1033,
+                    "revivesreceived" 522,
+                    "medicalitemsused" 25727,
+                    "statenhancersused" 4797,
+                    "trainsreceived" 0,
+                    "totalbountyspent" 43096666,
+                    "drugsused" 4712,
+                    "overdosed" 123,
+                    "meritsbought" 50,
+                    "logins" 7619,
+                    "personalsplaced" 0,
+                    "classifiedadsplaced" 24,
+                    "mailssent" 71832,
+                    "friendmailssent" 8022,
+                    "factionmailssent" 13210,
+                    "companymailssent" 4670,
+                    "spousemailssent" 7520,
+                    "largestmug" 686981142,
+                    "cantaken" 1128,
+                    "exttaken" 50,
+                    "kettaken" 50,
+                    "lsdtaken" 309,
+                    "opitaken" 50,
+                    "shrtaken" 50,
+                    "spetaken" 50,
+                    "pcptaken" 50,
+                    "xantaken" 1955,
+                    "victaken" 1020,
+                    "chahits" 505,
+                    "heahits" 2858,
+                    "axehits" 14549,
+                    "grehits" 518,
+                    "machits" 501,
+                    "pishits" 732,
+                    "rifhits" 1984,
+                    "shohits" 4232,
+                    "smghits" 1853,
+                    "piehits" 1761,
+                    "slahits" 1847,
+                    "argtravel" 50,
+                    "mextravel" 54,
+                    "dubtravel" 50,
+                    "hawtravel" 52,
+                    "japtravel" 51,
+                    "lontravel" 101,
+                    "soutravel" 209,
+                    "switravel" 320,
+                    "chitravel" 50,
+                    "cantravel" 50,
+                    "dumpfinds" 1013,
+                    "dumpsearches" 1014,
+                    "itemsdumped" 5001,
+                    "daysbeendonator" 1606,
+                    "caytravel" 50,
+                    "jailed" 3838,
+                    "hospital" 1056,
+                    "attacksassisted" 11,
+                    "bloodwithdrawn" 1594,
+                    "networth" 176218458815,
+                    "refills" 1791}})
+
+(def parsed-bodybagger-personalstats
+  {:personalstats
+   (map-keys keyword (get bodybagger-personalstats "personalstats"))})
+
+(def noobie-personalstats
+  {"personalstats" {"logins" 1 "refills" nil}})
+
+(def parsed-noobie-personalstats
+  {:personalstats
+   (assoc (zipmap (keys (get parsed-bodybagger-personalstats :personalstats))
+                  (repeat 0))
+          :logins 1)})
+
+(deftest personal-stats-test
+  (is (= parsed-bodybagger-personalstats
+         (api/personal-stats (test-client bodybagger-personalstats) "foo" 1)))
+  (is (= parsed-noobie-personalstats
+         (api/personal-stats (test-client noobie-personalstats) "foo" 2))))
