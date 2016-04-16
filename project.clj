@@ -15,6 +15,9 @@
                  [levand/immuconf "0.1.0"]
                  [org.postgresql/postgresql "9.3-1102-jdbc41"]
                  [com.taoensso/timbre "4.3.1"]]
+  :repositories {"my.datomic.com" {:url "https://my.datomic.com/repo"
+                                   :username [:gpg :env/datomic_username]
+                                   :password [:gpg :env/datomic_password]}}
   :profiles {:dev {:source-paths ["dev"]
                    :dependencies [[reloaded.repl "0.2.1"]
                                   [javax.servlet/servlet-api "2.5"]
