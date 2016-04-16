@@ -33,7 +33,7 @@
   ([api-key selections id]
    (cond (empty? api-key) (throw (ex-info "api-key cannot be empty" {}))
          (empty? selections) (throw (ex-info "selections cannot be empty" {}))
-         :default (format "http://api.torn.com/user/%s?selections=%s&key=%s"
+         :default (format "https://api.torn.com/user/%s?selections=%s&key=%s"
                           (if id (str id) "")
                           (join "," selections)
                           api-key))))

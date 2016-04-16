@@ -43,12 +43,12 @@
 (use-fixtures :each create-and-destroy-system)
 
 (defn mock-request [{:keys [uri request-method] :as req-map}]
-  (merge req-map
-         {:server-port 3000
+  (merge {:server-port 3000
           :server-name "127.0.0.1"
           :remote-addr "127.0.0.1"
           :scheme      :http
-          :headers     {}}))
+          :headers     {}}
+         req-map))
 
 (def decode-response-body (comp json/decode slurp :body))
 
@@ -56,10 +56,10 @@
   (reify api/HttpClient
     (http-get [this url]
       (cond
-        (= "http://api.torn.com/user/?selections=basic&key=foo" url)
+        (= "https://api.torn.com/user/?selections=basic&key=foo" url)
         {:body (json/encode basic-info-test-data)}
 
-        (= "http://api.torn.com/user/?selections=battlestats&key=foo" url)
+        (= "https://api.torn.com/user/?selections=battlestats&key=foo" url)
         {:body (json/encode battle-stats-test-data)}))))
 
 (deftest adds-valid-api-key
@@ -234,18 +234,24 @@
     (is (= {"result" {"4" "unknown" "5" "impossible" "6" "medium" "7" "impossible"}}
            (decode-response-body ((get-in system [:app :app])
                                   (mock-request {:uri "/api/difficulties"
-                                                 :body (.getBytes (json/encode {:torn-ids [4 5 6 7]}))
+                                                 :headers {"content-type" "application/json"}
+                                                 :body (java.io.ByteArrayInputStream.
+                                                        (.getBytes (json/encode {:torn-ids [4 5 6 7]})))
                                                  :query-string "api-key=foo"
                                                  :request-method :post})))))
     (is (= {"result" {"4" "easy" "5" "impossible" "6" "medium" "7" "medium"}}
            (decode-response-body ((get-in system [:app :app])
                                   (mock-request {:uri "/api/difficulties"
-                                                 :body (.getBytes (json/encode {:torn-ids [4 5 6 7]}))
+                                                 :headers {"content-type" "application/json"}
+                                                 :body (java.io.ByteArrayInputStream.
+                                                        (.getBytes (json/encode {:torn-ids [4 5 6 7]})))
                                                  :query-string "api-key=bar"
                                                  :request-method :post})))))
     (is (= {"result" {"4" "easy" "5" "unknown" "6" "medium" "7" "easy"}}
            (decode-response-body ((get-in system [:app :app])
                                   (mock-request {:uri "/api/difficulties"
-                                                 :body (.getBytes (json/encode {:torn-ids [4 5 6 7]}))
+                                                 :headers {"content-type" "application/json"}
+                                                 :body (java.io.ByteArrayInputStream.
+                                                        (.getBytes (json/encode {:torn-ids [4 5 6 7]})))
                                                  :query-string "api-key=baz"
                                                  :request-method :post})))))))

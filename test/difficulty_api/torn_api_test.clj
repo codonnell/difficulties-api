@@ -11,11 +11,11 @@
     (http-get [this url] {:body (json/encode resp)})))
 
 (deftest user-query-url-test
-  (is (= "http://api.torn.com/user/?selections=basic&key=foo"
+  (is (= "https://api.torn.com/user/?selections=basic&key=foo"
          (api/user-query-url "foo" ["basic"])))
-  (is (= "http://api.torn.com/user/?selections=basic,profile&key=foo"
+  (is (= "https://api.torn.com/user/?selections=basic,profile&key=foo"
          (api/user-query-url "foo" ["basic" "profile"])))
-  (is (= "http://api.torn.com/user/1234?selections=basic&key=foo"
+  (is (= "https://api.torn.com/user/1234?selections=basic&key=foo"
          (api/user-query-url "foo" ["basic"] 1234)))
   (is (thrown? RuntimeException
                (api/user-query-url "" ["basic"])))
