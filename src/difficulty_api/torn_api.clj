@@ -54,6 +54,41 @@
              :player_id s/Int
              :name s/Str}
     :selections ["basic"]}
+   :profile
+   {:schema {:rank s/Str
+             :level s/Int
+             :gender (s/enum "Female" "Male")
+             :property s/Str
+             :signup s/Str
+             :awards s/Int
+             :friends s/Int
+             :enemies s/Int
+             :forum_posts (s/maybe s/Int)
+             :karma s/Int
+             :age s/Int
+             :role s/Str
+             :donator (s/enum 0 1)
+             :player_id s/Int
+             :name s/Str
+             :property_id s/Int
+             :last_action s/Str
+             :life {:current s/Int
+                    :maximum s/Int
+                    :increment s/Int
+                    :interval s/Int
+                    :ticktime s/Int
+                    :fulltime s/Int}
+             :status [s/Str]
+             :job {:position s/Str
+                   :company_id s/Int
+                   (s/optional-key :company_name) s/Str}
+             :faction {:position s/Str
+                       :faction_id s/Int
+                       :faction_name s/Str}
+             :married {:spouse_id s/Int
+                       :spouse_name s/Str
+                       :duration s/Int}}
+    :selections ["profile"]}
    :battle-stats
    {:schema {:strength s/Num
              :speed s/Num
@@ -278,16 +313,25 @@
             (assoc a :attack/torn-id torn-id)))
         (:attacks attacks))))
 
-(def personal-stats (comp
-                     ;; Add in missing keys with value 0
-                     (fn [m]
-                       (let [stats
-                             {:personalstats
-                              (merge
-                               (zipmap (map :k (keys (get-in queries [:personal-stats :schema :personalstats])))
-                                       (repeat 0))
-                               (:personalstats m))}]
-                         (if-let [refills (get-in stats [:personalstats :refills])]
-                           stats
-                           (assoc-in stats [:personalstats :refills] 0))))
-                     (partial user-api-call :personal-stats)))
+(def personal-stats
+  (comp
+   ;; Add in missing keys with value 0
+   (fn [m]
+     (let [stats
+           {:personalstats
+            (merge
+             (zipmap (map :k (keys (get-in queries [:personal-stats :schema :personalstats])))
+                     (repeat 0))
+             (:personalstats m))}]
+       (if-let [refills (get-in stats [:personalstats :refills])]
+         stats
+         (assoc-in stats [:personalstats :refills] 0))))
+   (partial user-api-call :personal-stats)))
+
+(def profile
+  (comp
+   (fn [m]
+     (if-let [posts (get m :forum_posts)]
+       m
+       (assoc m :forum_posts 0)))
+   (partial user-api-call :profile)))

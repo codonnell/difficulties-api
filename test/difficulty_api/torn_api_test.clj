@@ -259,3 +259,147 @@
          (api/personal-stats (test-client bodybagger-personalstats) "foo" 1)))
   (is (= parsed-noobie-personalstats
          (api/personal-stats (test-client noobie-personalstats) "foo" 2))))
+
+(def bodybagger-profile
+  {"role" "Civilian"
+   "faction" {"position" "Member"
+              "faction_id" 2013
+              "faction_name" "Subversive Alliance"}
+   "age" 3924
+   "karma" 1635
+   "job" {"position" "Director"
+          "company_id" 19303
+          "company_name" "BodyBagger&#39;s Oil"}
+   "awards" 410
+   "friends" 1313
+   "gender" "Male"
+   "rank" "Invincible Killer"
+   "forum_posts" 3258
+   "player_id" 99177
+   "name" "BodyBagger"
+   "level" 100
+   "property_id" 618737
+   "enemies" 214
+   "status" ["Okay" ""]
+   "property" "Private Island"
+   "signup" "2005-07-19 03:00:34"
+   "last_action" "2 hours ago"
+   "donator" 1
+   "life" {"current" 7500
+           "maximum" 7500
+           "increment" 375
+           "interval" 300
+           "ticktime" 55
+           "fulltime" 0}
+   "married" {"spouse_id" 158720
+              "spouse_name" "Brainwave"
+              "duration" 3075}})
+
+(def parsed-bodybagger-profile
+  {:rank "Invincible Killer"
+   :level 100
+   :gender "Male"
+   :property "Private Island"
+   :signup "2005-07-19 03:00:34"
+   :awards 410
+   :friends 1313
+   :enemies 214
+   :forum_posts 3258
+   :karma 1635
+   :age 3924
+   :role "Civilian"
+   :donator 1
+   :player_id 99177
+   :name "BodyBagger"
+   :property_id 618737
+   :last_action "2 hours ago"
+   :life {:current 7500
+          :maximum 7500
+          :increment 375
+          :interval 300
+          :ticktime 55
+          :fulltime 0}
+   :status ["Okay" ""]
+   :job {:position "Director"
+         :company_id 19303
+         :company_name "BodyBagger&#39;s Oil"}
+   :faction {:position "Member"
+             :faction_id 2013
+             :faction_name "Subversive Alliance"}
+   :married {:spouse_id 158720
+             :spouse_name "Brainwave"
+             :duration 3075}})
+
+(def noobie-profile
+  {"rank" "Absolute beginner "
+   "level" 1
+   "gender" "Female"
+   "property" "Shack"
+   "signup" "2016-03-27 10:40:35"
+   "awards" 0
+   "friends" 1
+   "enemies" 0
+   "forum_posts" nil
+   "karma" 0
+   "age" 20
+   "role" "Civilian"
+   "donator" 0
+   "player_id" 1986152
+   "name" "Mercedes69"
+   "property_id" 0
+   "last_action" "21 days ago"
+   "life" {"current" 100
+           "maximum" 100
+           "increment" 5
+           "interval" 300
+           "ticktime" 245
+           "fulltime" 0}
+   "status" ["Okay" ""]
+   "job" {"position" "None"
+          "company_id" 0}
+   "faction" {"position" "None"
+              "faction_id" 0
+              "faction_name" "None"}
+   "married" {"spouse_id" 0
+              "spouse_name" "None"
+              "duration" 0}})
+
+(def parsed-noobie-profile
+  {:rank "Absolute beginner "
+   :level 1
+   :gender "Female"
+   :property "Shack"
+   :signup "2016-03-27 10:40:35"
+   :awards 0
+   :friends 1
+   :enemies 0
+   :forum_posts 0
+   :karma 0
+   :age 20
+   :role "Civilian"
+   :donator 0
+   :player_id 1986152
+   :name "Mercedes69"
+   :property_id 0
+   :last_action "21 days ago"
+   :life {:current 100
+          :maximum 100
+          :increment 5
+          :interval 300
+          :ticktime 245
+          :fulltime 0}
+   :status ["Okay" ""]
+   :job {:position "None"
+         :company_id 0}
+   :faction {:position "None"
+             :faction_id 0
+             :faction_name "None"}
+   :married {:spouse_id 0
+             :spouse_name "None"
+             :duration 0}})
+
+(deftest profile-test
+  (is (= parsed-bodybagger-profile
+         (api/profile (test-client bodybagger-profile) "foo" 0)))
+  (is (= parsed-noobie-profile
+         (api/profile (test-client noobie-profile) "foo" 1))))
