@@ -17,8 +17,14 @@
     (throw (ex-info "Unknown attacker" {:player/api-key api-key}))))
 
 (defn update-attacks-if-outdated [http-client db api-key]
-  (when (t/after? (t/ago (t/hours 1)) (:player/last-attack-update (db/player-by-api-key db api-key)))
-    (update-attacks http-client db api-key)))
+  (let [last-update (:player/last-attack-update (db/player-by-api-key db api-key))]
+    (when (or (not last-update) (t/after? (t/ago (t/hours 1)) last-update))
+      (update-attacks http-client db api-key))))
+
+(defn update-attacks-full [http-client db api-key]
+  (if-let [torn-id (:player/torn-id (db/player-by-api-key db api-key))]
+    (db/update-attacks db torn-id (api/api-attacks->schema-attacks (api/attacks-full http-client api-key)))
+    (throw (ex-info "Unknown attacker" {:player/api-key api-key}))))
 
 (defn add-api-key [http-client db api-key]
   (if-let [torn-id (:player_id (api/valid-api-key? http-client api-key))]
@@ -26,7 +32,8 @@
                                    :player/api-key api-key
                                    :player/battle-stats (api/total-battle-stats
                                                          (api/battle-stats http-client api-key))
-                                   :player/last-attack-update (t/epoch)}))
+                                   :player/last-attack-update (t/epoch)})
+                (update-attacks-full http-client db api-key))
         true)
     (throw (ex-info "Invalid API key" {:api-key api-key
                                        :type :invalid-api-key}))))
