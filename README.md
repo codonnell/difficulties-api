@@ -1,5 +1,7 @@
 # difficulty-api
 
+![Travis Build Status](https://travis-ci.org/codonnell/difficulties-api.svg?branch=master)
+
 ## Description
 
 `difficulty-api` is the backend for a script which helps estimate the difficulty
