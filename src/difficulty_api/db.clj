@@ -237,3 +237,18 @@
                                {:db/id (d/tempid :db.part/user)
                                 :player/torn-id torn-id
                                 :player/last-attack-update (to-date (now))})))
+
+(defn fix-attack-timestamps [db]
+  (let [attacks (d/q '[:find [(pull ?attack [:attack/torn-id
+                                             :attack/timestamp-started
+                                             :attack/timestamp-ended]) ...]
+                       :where [?attack :attack/torn-id]]
+                     (d/db (:conn db)))
+        fix-date (fn [date] (java.util.Date. (* 1000 (.getTime date))))
+        fixed-attacks (mapv (fn [attack]
+                              (-> attack
+                                  (update :attack/timestamp-started fix-date)
+                                  (update :attack/timestamp-ended fix-date)
+                                  (assoc :db/id (d/tempid :db.part/user))))
+                            attacks)]
+    (d/transact (:conn db) fixed-attacks)))
