@@ -280,12 +280,6 @@
    (fn [req-names]
      (coerce/coercer (apply merge (map #(get-in queries [% :schema]) req-names)) torn-api-matcher))))
 
-(defn user-api-call
-  ([req-name http-client api-key]
-   (user-api-call req-name http-client api-key nil))
-  ([req-name http-client api-key id]
-   (user-multi-api-call [req-name] http-client api-key id)))
-
 (defn user-multi-api-call
   ([req-names http-client api-key]
    (user-multi-api-call req-names http-client api-key nil))
@@ -295,6 +289,12 @@
        (:body)
        ((multi-resp-parser req-names))
        ((apply comp (map #(get-in queries [% :post-process]) req-names))))))
+
+(defn user-api-call
+  ([req-name http-client api-key]
+   (user-api-call req-name http-client api-key nil))
+  ([req-name http-client api-key id]
+   (user-multi-api-call [req-name] http-client api-key id)))
 
 (def basic-info (partial user-api-call :basic-info))
 
@@ -351,3 +351,5 @@
 (def personal-stats (partial user-api-call :personal-stats))
 
 (def profile (partial user-api-call :profile))
+
+(def public-info (partial user-multi-api-call [:personal-stats :profile]))
