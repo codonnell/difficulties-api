@@ -27,3 +27,9 @@ Write function to train a classifier based on dataset
 Write function to classify targets based on classifier
 Evaluate effectiveness of classifier and potentially try different technique
 Write frontend code to visualize difficulties for previously unknown targets using classifier
+
+The architecture of the public info-based needs to allow for downloading the
+public info of potential targets over time. The current plan is to open a
+websocket. Then if we need to call out to the torn api to get public info on
+some players, we can do so and stream estimations over the websocket as the
+necessary data arrives.

@@ -238,6 +238,13 @@
                                 :player/torn-id torn-id
                                 :player/last-attack-update (to-date (now))})))
 
+(defn update-battle-stats-tx [db torn-id battle-stats]
+  (let [ent-id (d/entid db [:player/torn-id torn-id])]
+    [[:db.fn/cas ent-id :player/battle-stats (:player/battle-stats (d/entity db ent-id)) battle-stats]]))
+
+(defn update-battle-stats [db torn-id battle-stats]
+  (d/transact (:conn db) (update-battle-stats-tx (d/db (:conn db)) torn-id battle-stats)))
+
 (defn fix-attack-timestamps [db]
   (let [attacks (d/q '[:find [(pull ?attack [:attack/torn-id
                                              :attack/timestamp-started

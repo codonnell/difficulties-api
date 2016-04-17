@@ -228,6 +228,11 @@
          (db/attack-by-torn-id* (speculate test-db (db/add-attack-tx duplicate-test-attack))
                                 (:attack/torn-id duplicate-test-attack)))))
 
+(deftest update-battle-stats-test
+  (is (= {:player/torn-id 1 :player/battle-stats 6.0 :player/api-key "foo"}
+         (db/player-by-torn-id* (speculate test-db (db/update-battle-stats-tx test-db 1 6.0))
+                                1))))
+
 (deftest db-attack->schema-attack-test
   (is (= schema-test-attack
          (db/db-attack->schema-attack return-test-attack)))

@@ -37,3 +37,9 @@
         true)
     (throw (ex-info "Invalid API key" {:api-key api-key
                                        :type :invalid-api-key}))))
+
+(defn update-battle-stats [http-client db api-key]
+  (if-let [torn-id (:player/torn-id (db/player-by-api-key db api-key))]
+    (db/update-battle-stats db torn-id (api/total-battle-stats
+                                        (api/battle-stats http-client api-key)))
+    (throw (ex-info "Unknown player" {:player/api-key api-key}))))
