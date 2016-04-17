@@ -53,7 +53,9 @@
              :status s/Str
              :player_id s/Int
              :name s/Str}
+    :post-process identity
     :selections ["basic"]}
+
    :profile
    {:schema {:rank s/Str
              :level s/Int
@@ -88,7 +90,12 @@
              :married {:spouse_id s/Int
                        :spouse_name s/Str
                        :duration s/Int}}
+    :post-process (fn [m]
+                    (if-let [posts (get m :forum_posts)]
+                      m
+                      (assoc m :forum_posts 0)))
     :selections ["profile"]}
+
    :battle-stats
    {:schema {:strength s/Num
              :speed s/Num
@@ -102,7 +109,9 @@
              :speed_info [s/Str]
              :dexterity_info [s/Str]
              :defense_info [s/Str]}
+    :post-process identity
     :selections ["battlestats"]}
+
    :attacks
    {:schema {:attacks {s/Int {:defender_faction s/Int
                               :attacker_faction (s/maybe s/Int)
@@ -114,7 +123,9 @@
                               :respect_gain s/Num
                               :timestamp_started s/Inst
                               :timestamp_ended s/Inst}}}
+    :post-process identity
     :selections ["attacks"]}
+
    :attacks-full
    {:schema {:attacks {s/Int {:defender_faction s/Int
                               :attacker_faction (s/maybe s/Int)
@@ -124,7 +135,9 @@
                               :respect_gain s/Num
                               :timestamp_started s/Inst
                               :timestamp_ended s/Inst}}}
+    :post-process identity
     :selections ["attacksfull"]}
+
    :personal-stats
    {:schema {:personalstats {(s/optional-key :logins) s/Int,
                              (s/optional-key :useractivity) s/Num,
@@ -228,6 +241,16 @@
                              (s/optional-key :itemswon) s/Int,
                              (s/optional-key :statenhancersused) s/Int,
                              (s/optional-key :classifiedadsplaced) s/Int}}
+    :post-process (fn [m]
+                    (let [stats
+                          {:personalstats
+                           (merge
+                            (zipmap (map :k (keys (get-in queries [:personal-stats :schema :personalstats])))
+                                    (repeat 0))
+                            (:personalstats m))}]
+                      (if-let [refills (get-in stats [:personalstats :refills])]
+                        stats
+                        (assoc-in stats [:personalstats :refills] 0))))
     :selections ["personalstats"]}})
 
 (defn long->Date [timestamp]
@@ -257,9 +280,11 @@
   ([req-name http-client api-key]
    (user-api-call req-name http-client api-key nil))
   ([req-name http-client api-key id]
-   (let [resp (sanitize-resp (http-get http-client
-                                       (user-query-url api-key (get-in queries [req-name :selections]))))]
-     ((resp-parser req-name) (:body resp)))))
+   (-> (http-get http-client (user-query-url api-key (get-in queries [req-name :selections])))
+       (sanitize-resp)
+       (:body)
+       ((resp-parser req-name))
+       ((get-in queries [req-name :post-process])))))
 
 (def basic-info (partial user-api-call :basic-info))
 
@@ -313,25 +338,6 @@
             (assoc a :attack/torn-id torn-id)))
         (:attacks attacks))))
 
-(def personal-stats
-  (comp
-   ;; Add in missing keys with value 0
-   (fn [m]
-     (let [stats
-           {:personalstats
-            (merge
-             (zipmap (map :k (keys (get-in queries [:personal-stats :schema :personalstats])))
-                     (repeat 0))
-             (:personalstats m))}]
-       (if-let [refills (get-in stats [:personalstats :refills])]
-         stats
-         (assoc-in stats [:personalstats :refills] 0))))
-   (partial user-api-call :personal-stats)))
+(def personal-stats (partial user-api-call :personal-stats))
 
-(def profile
-  (comp
-   (fn [m]
-     (if-let [posts (get m :forum_posts)]
-       m
-       (assoc m :forum_posts 0)))
-   (partial user-api-call :profile)))
+(def profile (partial user-api-call :profile))
