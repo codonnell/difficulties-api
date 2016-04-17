@@ -168,15 +168,18 @@
   [{:db/id #db/id [:db.part/user -1]
     :player/api-key "foo"
     :player/torn-id 1
-    :player/battle-stats 5.0}
+    :player/battle-stats 5.0
+    :player/last-attack-update (java.util.Date.)}
    {:db/id #db/id [:db.part/user -2]
     :player/api-key "bar"
     :player/torn-id 2
-    :player/battle-stats 10.0}
+    :player/battle-stats 10.0
+    :player/last-attack-update (java.util.Date.)}
    {:db/id #db/id [:db.part/user -3]
     :player/api-key "baz"
     :player/torn-id 3
-    :player/battle-stats 20.0}
+    :player/battle-stats 20.0
+    :player/last-attack-update (java.util.Date.)}
    {:db/id #db/id [:db.part/user -4]
     :player/torn-id 4}
    {:db/id #db/id [:db.part/user -5]
