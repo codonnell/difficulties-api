@@ -231,7 +231,7 @@
     :selections ["personalstats"]}})
 
 (defn long->Date [timestamp]
-  (java.util.Date. (long timestamp)))
+  (java.util.Date. (* 1000 (long timestamp))))
 
 (defn maybe-string->id [id]
   (if (string? id)
