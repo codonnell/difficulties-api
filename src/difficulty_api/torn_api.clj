@@ -243,14 +243,13 @@
                              (s/optional-key :classifiedadsplaced) s/Int}}
     :post-process (fn [m]
                     (let [stats
-                          {:personalstats
-                           (merge
-                            (zipmap (map :k (keys (get-in queries [:personal-stats :schema :personalstats])))
-                                    (repeat 0))
-                            (:personalstats m))}]
-                      (if-let [refills (get-in stats [:personalstats :refills])]
-                        stats
-                        (assoc-in stats [:personalstats :refills] 0))))
+                          (merge
+                           (zipmap (map :k (keys (get-in queries [:personal-stats :schema :personalstats])))
+                                   (repeat 0))
+                           (:personalstats m))]
+                      (if-let [refills (:refills stats)]
+                        (assoc m :personalstats stats)
+                        (assoc m :personalstats (assoc stats :refills 0)))))
     :selections ["personalstats"]}})
 
 (defn long->Date [timestamp]
@@ -276,15 +275,26 @@
    (fn [req-name]
      (coerce/coercer (get-in queries [req-name :schema]) torn-api-matcher))))
 
+(def multi-resp-parser
+  (memoize
+   (fn [req-names]
+     (coerce/coercer (apply merge (map #(get-in queries [% :schema]) req-names)) torn-api-matcher))))
+
 (defn user-api-call
   ([req-name http-client api-key]
    (user-api-call req-name http-client api-key nil))
   ([req-name http-client api-key id]
-   (-> (http-get http-client (user-query-url api-key (get-in queries [req-name :selections])))
+   (user-multi-api-call [req-name] http-client api-key id)))
+
+(defn user-multi-api-call
+  ([req-names http-client api-key]
+   (user-multi-api-call req-names http-client api-key nil))
+  ([req-names http-client api-key id]
+   (-> (http-get http-client (user-query-url api-key (mapcat #(get-in queries [% :selections]) req-names)))
        (sanitize-resp)
        (:body)
-       ((resp-parser req-name))
-       ((get-in queries [req-name :post-process])))))
+       ((multi-resp-parser req-names))
+       ((apply comp (map #(get-in queries [% :post-process]) req-names))))))
 
 (def basic-info (partial user-api-call :basic-info))
 
