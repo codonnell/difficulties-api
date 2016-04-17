@@ -20,11 +20,11 @@ will be estimated.
 
 You will need a license for Datomic Pro, which you can get
 [here](http://www.datomic.com/get-datomic.html). In order to install it, follow
-the instructions provided by
-[Datomic](http://docs.datomic.com/getting-started.html) under Leiningen setup.
+the [instructions](http://docs.datomic.com/getting-started.html) provided by
+Datomic under Leiningen setup.
 You can also set the environment variables `$DATOMIC_USERNAME` and
-`$DATOMIC_PASSWORD`. If you persistent storage, like on a production server, you
-will need to provision that storage. This project is set up to use PostgreSQL,
+`$DATOMIC_PASSWORD`. If you need persistent storage, like on a production server, you
+will need to provision that storage. This project is set up to use Postgres,
 which Datomic provides instructions for
 [here](http://docs.datomic.com/storage.html#sql-database). In order to connect
 to a persistent database, you will need to have a
