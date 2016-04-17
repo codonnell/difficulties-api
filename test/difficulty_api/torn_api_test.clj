@@ -73,16 +73,16 @@
                               "result" "Run away"
                               "respect_gain" 0.0
                               "timestamp_started" 5000
-                              "timestamp_ended" 6000}}}]
+                              "timestamp_ended" 5200}}}]
     (is (= (-> info
                (keywordize-keys)
                (update :attacks (fn [m] (map-keys (comp #(Integer/parseInt %) name) m)))
                (assoc-in [:attacks 2 :attacker_id] nil)
                (assoc-in [:attacks 2 :attacker_faction] nil)
-               (update-in [:attacks 1 :timestamp_started] api/long->Date)
-               (update-in [:attacks 1 :timestamp_ended] api/long->Date)
-               (update-in [:attacks 2 :timestamp_started] api/long->Date)
-               (update-in [:attacks 2 :timestamp_ended] api/long->Date))
+               (update-in [:attacks 1 :timestamp_started] #(java.util.Date. (* 1000 %)))
+               (update-in [:attacks 1 :timestamp_ended]  #(java.util.Date. (* 1000 %)))
+               (update-in [:attacks 2 :timestamp_started]  #(java.util.Date. (* 1000 %)))
+               (update-in [:attacks 2 :timestamp_ended]  #(java.util.Date. (* 1000 %))))
            (api/attacks (test-client info) "foo")))
     (is (thrown? RuntimeException
                  (api/attacks (test-client info) ""))))
