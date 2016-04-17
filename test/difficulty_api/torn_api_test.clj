@@ -403,3 +403,9 @@
          (api/profile (test-client bodybagger-profile) "foo" 0)))
   (is (= parsed-noobie-profile
          (api/profile (test-client noobie-profile) "foo" 1))))
+
+(deftest public-info-test
+  (is (= (merge parsed-bodybagger-profile parsed-bodybagger-personalstats)
+         (api/public-info (test-client (merge bodybagger-profile bodybagger-personalstats)) "foo" 0)))
+  (is (= (merge parsed-noobie-profile parsed-noobie-personalstats)
+         (api/public-info (test-client (merge noobie-profile noobie-personalstats)) "foo" 1))))
