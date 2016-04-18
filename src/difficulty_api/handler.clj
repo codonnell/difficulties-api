@@ -66,6 +66,7 @@
        :summary "returns a list of difficulties"
        (ok {:result (do (log/info (format "Getting difficulties for API key %s of IDs %s"
                                           api-key (string/join ", " (:torn-ids body))))
+                        (future (dispatch/update-battle-stats-if-outdated http-client db api-key))
                         (dispatch/update-attacks-if-outdated http-client db api-key)
                         (dispatch/difficulties db api-key (:torn-ids body)))})))))
 

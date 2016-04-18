@@ -74,16 +74,24 @@
 (defn db-player->schema-player
   "Translates a player to the schema representation. That just means changing the :player/last-attack-update from a java Date into a joda DateTime."
   [player]
-  (if (get player :player/last-attack-update)
-    (update player :player/last-attack-update from-date)
-    player))
+  (as-> player player
+    (if (get player :player/last-attack-update)
+      (update player :player/last-attack-update from-date)
+      player)
+    (if (get player :player/last-battle-stats-update)
+      (update player :player/last-battle-stats-update from-date)
+      player)))
 
 (defn schema-player->db-player
   "Translates a player to the db representation. That just means changing the :player/last-attack-update from a joda DateTime into a java Date."
   [player]
-  (if (get player :player/last-attack-update)
-    (update player :player/last-attack-update to-date)
-    player))
+  (as-> player player
+    (if (get player :player/last-attack-update)
+      (update player :player/last-attack-update to-date)
+      player)
+    (if (get player :player/last-battle-stats-update)
+      (update player :player/last-battle-stats-update to-date)
+      player)))
 
 (defn attacks-on
   "Returns a list of entries [{:attacker-stats stats :result :win/:lose}]"
@@ -150,7 +158,8 @@
 (defn difficulties [db attacker-id defender-ids]
   (difficulties* (d/db (:conn db)) attacker-id defender-ids))
 
-(def player-pull [:player/torn-id :player/api-key :player/battle-stats :player/last-attack-update])
+(def player-pull [:player/torn-id :player/api-key :player/battle-stats :player/last-attack-update
+                  :player/last-battle-stats-update])
 
 (defn player-by-torn-id* [db torn-id]
   (db-player->schema-player
@@ -240,7 +249,10 @@
 
 (defn update-battle-stats-tx [db torn-id battle-stats]
   (let [ent-id (d/entid db [:player/torn-id torn-id])]
-    [[:db.fn/cas ent-id :player/battle-stats (:player/battle-stats (d/entity db ent-id)) battle-stats]]))
+    [[:db.fn/cas ent-id :player/battle-stats
+      (:player/battle-stats (d/entity db ent-id)) battle-stats]
+     [:db.fn/cas ent-id :player/last-battle-stats-update
+      (:player/last-battle-stats-update (d/entity db ent-id)) (to-date (now))]]))
 
 (defn update-battle-stats [db torn-id battle-stats]
   (d/transact (:conn db) (update-battle-stats-tx (d/db (:conn db)) torn-id battle-stats)))

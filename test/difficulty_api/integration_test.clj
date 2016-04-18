@@ -6,6 +6,7 @@
              [datomic.api :as d]
              [clj-time.core :as t]
              [clj-time.coerce :refer [to-date]]
+             [clojure.walk :refer [stringify-keys]]
              [difficulty-api.dispatch :as dispatch]
              [difficulty-api.db :as db]
              [difficulty-api.torn-api :as api]
@@ -77,7 +78,8 @@
             :player/api-key      "foo"}
            (do (dispatch/add-api-key valid-api-key-http-client (:db system) "foo")
                (Thread/sleep 100)
-               (dissoc (db/player-by-api-key (:db system) "foo") :player/last-attack-update))))))
+               (dissoc (db/player-by-api-key (:db system) "foo") :player/last-attack-update
+                       :player/last-battle-stats-update))))))
 
 (deftest doesnt-add-invalid-api-key
   (let [system (component/start-system
@@ -258,3 +260,16 @@
                                                         (.getBytes (json/encode {:torn-ids [4 5 6 7]})))
                                                  :query-string "api-key=baz"
                                                  :request-method :post})))))))
+
+(deftest update-battle-stats-if-outdated-test
+  (let [system (component/start-system
+                (assoc-in system [:app :http-client]
+                          (test-client (stringify-keys battle-stats-test-data))))]
+    (db/add-player (:db system) (assoc test-player :player/last-battle-stats-update (t/now)))
+    (dispatch/update-battle-stats-if-outdated (get-in system [:app :http-client]) (:db system) "bar")
+    (is (= (:player/battle-stats test-player) (:player/battle-stats (db/player-by-api-key (:db system) "bar"))))
+    (db/add-player (:db system) (assoc test-player :player/last-battle-stats-update (t/ago (t/days 2))))
+    (dispatch/update-battle-stats-if-outdated (get-in system [:app :http-client]) (:db system) "bar")
+    (is (= (reduce + 0 (vals (select-keys battle-stats-test-data
+                                          [:strength :speed :dexterity :defense])) )
+           (:player/battle-stats (db/player-by-api-key (:db system) "bar"))))))

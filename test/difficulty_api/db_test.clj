@@ -1,8 +1,11 @@
 (ns difficulty-api.db-test
   (:require [difficulty-api.db :as db]
             [datomic.api :as d]
+            [clj-time.coerce :refer [to-date from-date]]
             [com.stuartsierra.component :as component]
-            [clojure.test :refer [deftest is use-fixtures]]))
+            [clojure.test :refer [deftest is use-fixtures]]
+            [clj-time.core :as t])
+  (:import [java.util GregorianCalendar Date TimeZone]))
 
 (def test-uri "datomic:mem://difficulty-api-test")
 
@@ -35,106 +38,108 @@
     :attack/torn-id 1
     :attack/attacker #db/id[:db.part/user -2]
     :attack/defender #db/id[:db.part/user -4]
-    :attack/timestamp-started (java.util.Date. (long 1))
-    :attack/timestamp-ended (java.util.Date. (long 100))
+    :attack/timestamp-started (Date. (long 1))
+    :attack/timestamp-ended (Date. (long 100))
     :attack/result :attack.result/hospitalize}
    {:db/id #db/id[:db.part/user -9]
     :attack/torn-id 2
     :attack/attacker #db/id[:db.part/user -2]
     :attack/defender #db/id[:db.part/user -5]
-    :attack/timestamp-started (java.util.Date. (long 1))
-    :attack/timestamp-ended (java.util.Date. (long 100))
+    :attack/timestamp-started (Date. (long 1))
+    :attack/timestamp-ended (Date. (long 100))
     :attack/result :attack.result/lose}
    {:db/id #db/id[:db.part/user -11]
     :attack/torn-id 4
     :attack/attacker #db/id[:db.part/user -1]
     :attack/defender #db/id[:db.part/user -6]
-    :attack/timestamp-started (java.util.Date. (long 1))
-    :attack/timestamp-ended (java.util.Date. (long 100))
+    :attack/timestamp-started (Date. (long 1))
+    :attack/timestamp-ended (Date. (long 100))
     :attack/result :attack.result/mug}
    {:db/id #db/id[:db.part/user -12]
     :attack/torn-id 5
     :attack/attacker #db/id[:db.part/user -3]
     :attack/defender #db/id[:db.part/user -6]
-    :attack/timestamp-started (java.util.Date. (long 1))
-    :attack/timestamp-ended (java.util.Date. (long 100))
+    :attack/timestamp-started (Date. (long 1))
+    :attack/timestamp-ended (Date. (long 100))
     :attack/result :attack.result/stalemate}
    {:db/id #db/id[:db.part/user -13]
     :attack/torn-id 6
     :attack/attacker #db/id[:db.part/user -2]
     :attack/defender #db/id[:db.part/user -7]
-    :attack/timestamp-started (java.util.Date. (long 1))
-    :attack/timestamp-ended (java.util.Date. (long 100))
+    :attack/timestamp-started (Date. (long 1))
+    :attack/timestamp-ended (Date. (long 100))
     :attack/result :attack.result/hospitalize}
    {:db/id #db/id[:db.part/user -14]
     :attack/torn-id 7
     :attack/attacker #db/id[:db.part/user -2]
     :attack/defender #db/id[:db.part/user -7]
-    :attack/timestamp-started (java.util.Date. (long 1))
-    :attack/timestamp-ended (java.util.Date. (long 100))
+    :attack/timestamp-started (Date. (long 1))
+    :attack/timestamp-ended (Date. (long 100))
     :attack/result :attack.result/timeout}
    ])
 
 (def test-player {:player/torn-id 8
                   :player/api-key "foo"
-                  :player/battle-stats 100.0})
+                  :player/battle-stats 100.0
+                  :player/last-attack-update (t/date-time 2000 1 1 1 1 1 1)
+                  :player/last-battle-stats-update (t/date-time 2000 1 1 1 1 1 1)})
 
 (def schema-test-attack {:attack/torn-id 15
                          :attack/attacker 1
                          :attack/defender 2
-                         :attack/timestamp-started (java.util.Date. (long 1))
-                         :attack/timestamp-ended (java.util.Date. (long 100))
+                         :attack/timestamp-started (Date. (long 1))
+                         :attack/timestamp-ended (Date. (long 100))
                          :attack/result :attack.result/hospitalize})
 
 ;; ready for entry to datomic
 (def db-test-attack {:attack/torn-id 15
                      :attack/attacker {:player/torn-id 1}
                      :attack/defender {:player/torn-id 2}
-                     :attack/timestamp-started (java.util.Date. (long 1))
-                     :attack/timestamp-ended (java.util.Date. (long 100))
+                     :attack/timestamp-started (Date. (long 1))
+                     :attack/timestamp-ended (Date. (long 100))
                      :attack/result [:db/ident :attack.result/hospitalize]})
 
 ;; tuple return from datomic
 (def return-test-attack [{:attack/torn-id 15
                           :attack/attacker {:player/torn-id 1}
                           :attack/defender {:player/torn-id 2}
-                          :attack/timestamp-started (java.util.Date. (long 1))
-                          :attack/timestamp-ended (java.util.Date. (long 100))}
+                          :attack/timestamp-started (Date. (long 1))
+                          :attack/timestamp-ended (Date. (long 100))}
                          :attack.result/hospitalize])
 
 (def duplicate-test-attack {:attack/torn-id 1
                             :attack/attacker 2
                             :attack/defender 4
-                            :attack/timestamp-started (java.util.Date. (long 1))
-                            :attack/timestamp-ended (java.util.Date. (long 100))
+                            :attack/timestamp-started (Date. (long 1))
+                            :attack/timestamp-ended (Date. (long 100))
                             :attack/result :attack.result/hospitalize})
 
 (def unknown-player-attack {:attack/torn-id 16
                             :attack/attacker 1
                             :attack/defender 9
-                            :attack/timestamp-started (java.util.Date. (long 1))
-                            :attack/timestamp-ended (java.util.Date. (long 100))
+                            :attack/timestamp-started (Date. (long 1))
+                            :attack/timestamp-ended (Date. (long 100))
                             :attack/result :attack.result/stalemate})
 
 (def schema-anon-attack {:attack/torn-id 17
                          :attack/attacker nil
                          :attack/defender 1
-                         :attack/timestamp-started (java.util.Date. (long 1))
-                         :attack/timestamp-ended (java.util.Date. (long 100))
+                         :attack/timestamp-started (Date. (long 1))
+                         :attack/timestamp-ended (Date. (long 100))
                          :attack/result :attack.result/stalemate})
 
 ;; ready for entry to datomic
 (def db-anon-attack {:attack/torn-id 17
                      :attack/defender {:player/torn-id 1}
-                     :attack/timestamp-started (java.util.Date. (long 1))
-                     :attack/timestamp-ended (java.util.Date. (long 100))
+                     :attack/timestamp-started (Date. (long 1))
+                     :attack/timestamp-ended (Date. (long 100))
                      :attack/result [:db/ident :attack.result/stalemate]})
 
 ;; tuple return from datomic
 (def return-anon-attack [{:attack/torn-id 17
                           :attack/defender {:player/torn-id 1}
-                          :attack/timestamp-started (java.util.Date. (long 1))
-                          :attack/timestamp-ended (java.util.Date. (long 100))}
+                          :attack/timestamp-started (Date. (long 1))
+                          :attack/timestamp-ended (Date. (long 100))}
                          :attack.result/stalemate])
 
 (defn speculate [db t]
@@ -208,8 +213,8 @@
   (is (= {:attack/torn-id 1
           :attack/attacker 2
           :attack/defender 4
-          :attack/timestamp-started (java.util.Date. (long 1))
-          :attack/timestamp-ended (java.util.Date. (long 100))
+          :attack/timestamp-started (Date. (long 1))
+          :attack/timestamp-ended (Date. (long 100))
           :attack/result :attack.result/hospitalize}
          (db/attack-by-torn-id* test-db 1)))
   (is (= nil (db/attack-by-torn-id* test-db 0))))
@@ -229,9 +234,11 @@
                                 (:attack/torn-id duplicate-test-attack)))))
 
 (deftest update-battle-stats-test
-  (is (= {:player/torn-id 1 :player/battle-stats 6.0 :player/api-key "foo"}
-         (db/player-by-torn-id* (speculate test-db (db/update-battle-stats-tx test-db 1 6.0))
-                                1))))
+  (let [updated-db (speculate test-db (db/update-battle-stats-tx test-db 1 6.0))
+        updated-player (db/player-by-torn-id* updated-db 1)]
+    (is (= 6.0 (:player/battle-stats updated-player)))
+    (is (.after (:player/last-battle-stats-update (d/entity updated-db [:player/torn-id 1]))
+                (Date. (- (.getTime (Date.)) 1000))))))
 
 (deftest db-attack->schema-attack-test
   (is (= schema-test-attack
@@ -244,3 +251,25 @@
          (db/schema-attack->db-attack schema-test-attack)))
   (is (= db-anon-attack
          (db/schema-attack->db-attack schema-anon-attack))))
+
+(def schema-player
+  {:player/torn-id 1
+   :player/api-key "key"
+   :player/battle-stats 3.14
+   :player/last-attack-update (t/date-time 1986 10 14 4 3 27)
+   :player/last-battle-stats-update (t/date-time 1986 10 14 4 3 27)})
+
+(def db-player
+  {:player/torn-id 1
+   :player/api-key "key"
+   :player/battle-stats 3.14
+   :player/last-attack-update (.getTime (doto (GregorianCalendar. 1986 9 14 4 3 27)
+                                          (. setTimeZone (TimeZone/getTimeZone "UTC"))))
+   :player/last-battle-stats-update (.getTime (doto (GregorianCalendar. 1986 9 14 4 3 27)
+                                                (. setTimeZone (TimeZone/getTimeZone "UTC"))))})
+
+(deftest db-player->schema-player-test
+  (is (= db-player
+         (db/schema-player->db-player schema-player)))
+  (is (= schema-player
+         (db/db-player->schema-player db-player))))

@@ -32,7 +32,8 @@
                                    :player/api-key api-key
                                    :player/battle-stats (api/total-battle-stats
                                                          (api/battle-stats http-client api-key))
-                                   :player/last-attack-update (t/epoch)})
+                                   :player/last-attack-update (t/epoch)
+                                   :player/last-battle-stats-update (t/now)})
                 (update-attacks-full http-client db api-key))
         true)
     (throw (ex-info "Invalid API key" {:api-key api-key
@@ -43,3 +44,8 @@
     (db/update-battle-stats db torn-id (api/total-battle-stats
                                         (api/battle-stats http-client api-key)))
     (throw (ex-info "Unknown player" {:player/api-key api-key}))))
+
+(defn update-battle-stats-if-outdated [http-client db api-key]
+  (let [last-update (:player/last-battle-stats-update (db/player-by-api-key db api-key))]
+    (when (or (not last-update) (t/after? (t/ago (t/days 1)) last-update))
+      (update-battle-stats http-client db api-key))))
