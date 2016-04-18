@@ -18,7 +18,7 @@ last action (measure in days ago)
 maximum life
 
 Steps needed for implementation:
-Get attacksfull at the start for all players?
+Get attacksfull at the start for all players? DONE
 Write rate limit-aware personal stats update
 Update schema to add personal stats to database
 Update personal stats for all existing players

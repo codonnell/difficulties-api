@@ -1,4 +1,4 @@
-(defproject difficulty-api "0.1.0-SNAPSHOT"
+(defproject difficulty-api "0.1.0"
   :description "Computes difficulties of attacks in torn and serves those difficulties via an API."
   :dependencies [[org.clojure/clojure "1.8.0"]
                  [clj-time "0.11.0"] ; required due to bug in `lein-ring uberwar`
@@ -19,9 +19,6 @@
                                    :username [:gpg :env/datomic_username]
                                    :password [:gpg :env/datomic_password]}}
   :profiles {:dev {:source-paths ["dev"]
-                   :dependencies [[reloaded.repl "0.2.1"]
-                                  [javax.servlet/servlet-api "2.5"]
-                                  [ring/ring-mock "0.3.0"]]
-                   :plugins [[lein-ring "0.9.7"]]}
+                   :dependencies [[reloaded.repl "0.2.1"]]}
              :uberjar {:main difficulty-api.main
                        :aot [difficulty-api.main]}})

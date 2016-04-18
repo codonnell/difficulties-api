@@ -41,15 +41,13 @@
    {:swagger
     {:ui "/"
      :spec "/swagger.json"
-     :data {:info {:title "Difficulty-api"
-                   :description "Compojure Api example"}
-            :tags [{:name "api", :description "some apis"}]}}
+     :data {:info {:title "difficulty-api"
+                   :description "API for estimating difficulty of attacking players in torn"}}}
     :exceptions {:handlers {:unknown-api-key unknown-api-key-handler
                             :invalid-api-key invalid-api-key-handler
                             :compojure.api.exception/default default-exception-handler}}}
 
    (context "/api" []
-     :tags ["api"]
      :middleware [wrap-cors]
 
      (POST "/apikey" []
