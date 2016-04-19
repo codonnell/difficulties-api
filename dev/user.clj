@@ -4,7 +4,8 @@
             [difficulty-api.db :as db]
             [difficulty-api.dispatch :as dispatch]
             [difficulty-api.torn-api :as api]
-            [com.stuartsierra.component :as component]))
+            [com.stuartsierra.component :as component]
+            [clojure.repl :refer :all]))
 
 (reloaded.repl/set-init! #(system/system {}))
 
