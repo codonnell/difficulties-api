@@ -115,6 +115,8 @@
    :attacks
    {:schema {:attacks {s/Int {:defender_faction s/Int
                               :attacker_faction (s/maybe s/Int)
+                              :defender_factionname (s/maybe s/Str)
+                              :attacker_factionname (s/maybe s/Str)
                               :defender_name s/Str
                               :attacker_name (s/maybe s/Str)
                               :defender_id s/Int

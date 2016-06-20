@@ -1,4 +1,4 @@
-(defproject difficulty-api "0.1.0"
+(defproject difficulty-api "0.1.1"
   :description "Computes difficulties of attacks in torn and serves those difficulties via an API."
   :dependencies [[org.clojure/clojure "1.8.0"]
                  [clj-time "0.11.0"] ; required due to bug in `lein-ring uberwar`
