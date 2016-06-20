@@ -111,9 +111,11 @@
                 :attacker_id 2
                 :attacker_name "superman"
                 :attacker_faction ""
+                :attacker_factionname ""
                 :defender_id 5
                 :defender_name "woody"
                 :defender_faction 500
+                :defender_factionname "carlson"
                 :result "Mug"
                 :respect_gain 0}
              2 {:timestamp_started 100
@@ -121,9 +123,11 @@
                 :attacker_id ""
                 :attacker_name ""
                 :attacker_faction ""
+                :attacker_factionname ""
                 :defender_id 2
                 :defender_name "superman"
                 :defender_faction 500
+                :defender_factionname "carlson"
                 :result "Lose"
                 :respect_gain 3.3}
              3 {:timestamp_started 50001
@@ -131,9 +135,11 @@
                 :attacker_id ""
                 :attacker_name ""
                 :attacker_faction ""
+                :attacker_factionname ""
                 :defender_id 2
                 :defender_name "superman"
                 :defender_faction 500
+                :defender_factionname "carlson"
                 :result "Lose"
                 :respect_gain 3.3}}})
 
