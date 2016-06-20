@@ -55,7 +55,9 @@
 
 (deftest attacks-test
   (let [info {"attacks" {"1" {"defender_faction" 1
+                              "defender_factionname" "foo-fac"
                               "attacker_faction" 2
+                              "attacker_factionname" "bar-fac"
                               "defender_name" "foo"
                               "attacker_name" "bar"
                               "defender_id" 3
@@ -65,7 +67,9 @@
                               "timestamp_started" 10
                               "timestamp_ended" 500}
                          "2" {"defender_faction" 2
+                              "defender_factionname" "bar-fac"
                               "attacker_faction" ""
+                              "attacker_factionname" ""
                               "defender_name" "bar"
                               "attacker_name" nil
                               "defender_id" 4
